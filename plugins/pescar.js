@@ -4,7 +4,7 @@
 import fetch from 'node-fetch'
 
 // Imagen del lago/agua
-const LAGO_IMG = 'https://files.catbox.moe/o1q5sq.jpeg'
+const LAGO_IMG = 'https://files.catbox.moe/y64g6c.jpg'
 
 // Lista de peces y recursos que se pueden pescar
 const peces = [
@@ -39,8 +39,8 @@ let handler = async (m, { conn, usedPrefix, command }) => {
     return m.reply(`—͟͟͞͞   *🜸 ʙᴀʟᴅᴡɪɴᴅ ɪᴠ  🛸  ᴄʏʙᴇʀ ᴄᴏʀᴇ  🜸* »\n> ❌ *No estás registrado*\n> 📌 Usa: *${usedPrefix}registrar Nombre.Edad*\n\n👑 *DEVLYONN*`)
   }
   
-  // Cooldown de 20 minutos
-  const cooldown = 20 * 60 * 1000
+  // Cooldown de 5 minutos
+  const cooldown = 5 * 60 * 1000
   const now = Date.now()
   
   if (user.fishCooldown && now - user.fishCooldown < cooldown) {
