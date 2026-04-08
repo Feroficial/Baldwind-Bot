@@ -1,6 +1,6 @@
 <div align="center">
   
-# 🜸 BALDWIND IV 🛸
+# 🜸 BALDWIND IV BOT 🛸
 
 ### *CYBER CORE • REINO MEDIEVAL RPG*
 
