@@ -1,77 +1,71 @@
-// ⚔️ Código creado por DEVLYONN 👑
-// 🛡️ BALDWIND IV - ACTUALIZAR REPOSITORIO
+// Código de WILKER OFC
 
-import { execSync } from 'child_process'
+import { execSync} from 'child_process';
 
-let handler = async (m, { conn, usedPrefix, command, text }) => {
-  let rwait = '⏳'
-  let done = '✅'
-  let error = '❌'
-
+const handler = async (m, { conn, args}) => {
   try {
-    await m.react(rwait)
-    
-    if (conn.user.jid == conn.user.jid) {
-      // Verificar si hay cambios locales
-      let statusOutput = ''
-      try {
-        statusOutput = execSync('git status --porcelain').toString()
-      } catch (e) {}
-      
-      let resultado = ''
-      
-      if (statusOutput.length > 0) {
-        // Hay cambios locales, hacer stash primero
-        resultado += '📦 *Cambios locales detectados, guardando...*\n'
-        execSync('git stash push -m "BALDWIND IV - Backup automático"')
-        resultado += '✅ *Cambios guardados temporalmente*\n\n'
-      }
-      
-      // Hacer git pull
-      let pullOutput = execSync('git pull' + (text ? ' ' + text : '')).toString()
-      resultado += `🔄 *ACTUALIZACIÓN COMPLETADA*\n📦 \`${pullOutput.trim()}\``
-      
-      // Restaurar stash si había
-      if (statusOutput.length > 0) {
-        try {
-          execSync('git stash pop')
-          resultado += '\n\n📂 *Cambios locales restaurados*'
-        } catch (e) {
-          resultado += '\n\n⚠️ *No se pudieron restaurar los cambios locales*'
-        }
-      }
-      
-      let caption = `—͟͟͞͞   *🜸 ʙᴀʟᴅᴡɪɴᴅ ɪᴠ  🛸  ᴄʏʙᴇʀ ᴄᴏʀᴇ  🜸* »\n`
-      caption += `> 🔄 *ACTUALIZACIÓN*\n\n`
-      caption += `✦ 𝗥𝗘𝗦𝗨𝗟𝗧𝗔𝗗𝗢 ✦\n`
-      caption += `${resultado}\n\n`
-      caption += `👑 *DEVLYONN*\n`
-      caption += `⌬ ʙᴀʟᴅᴡɪɴᴅ ɪᴠ ᴄʏʙᴇʀ ᴍᴇɴᴜ 🧬`
-      
-      await conn.sendMessage(m.chat, { text: caption }, { quoted: m })
-      await m.react(done)
-    }
-  } catch (e) {
-    await m.react(error)
-    
-    let errorMsg = e.message || ''
-    let solucion = ''
-    
-    if (errorMsg.includes('conflict')) {
-      solucion = '\n\n📌 *Para resolver manualmente:*\n1. Ejecuta: *git reset --hard HEAD*\n2. Luego: *git pull*\n3. Reinicia el bot'
-    } else if (errorMsg.includes('uncommitted')) {
-      solucion = '\n\n📌 *Para resolver:*\n1. Ejecuta: *git stash*\n2. Luego: *git pull*\n3. Ejecuta: *git stash pop*'
-    } else {
-      solucion = '\n\n📌 Para actualizar manualmente:\n*git reset --hard HEAD && git pull*'
-    }
-    
-    await m.reply(`—͟͟͞͞   *🜸 ʙᴀʟᴅᴡɪɴᴅ ɪᴠ  🛸  ᴄʏʙᴇʀ ᴄᴏʀᴇ  🜸* »\n> ❌ *ERROR EN ACTUALIZACIÓN*\n\n> ⚠️ *${errorMsg.split('\n')[0]}*\n${solucion}\n\n👑 *DEVLYONN*`)
-  }
+    await conn.reply(m.chat, '⏳ *_Actualizando el bot... Por favor espera._*', m);
+
+    const output = execSync('git pull' + (args.length? ' ' + args.join(' '): '')).toString();
+    const isUpdated = output.includes('Already up to date');
+
+    const updateMsg = isUpdated
+? '✅ *Balwind IV Bot ya está actualizado.*'
+: `✅ *Actualización aplicada correctamente:*\n\n${output}`;
+
+    await conn.reply(m.chat, updateMsg, m);
+
+} catch (error) {
+    let conflictMsg = '❌ *Error al actualizar el bot.*';
+
+    try {
+      const status = execSync('git status --porcelain').toString().trim();
+
+      if (status) {
+        const conflictedFiles = status
+.split('\n')
+.map(line => line.slice(3))
+.filter(file =>
+!file.startsWith('.npm/') &&
+!file.startsWith('Sessions/Principal/') &&
+!file.startsWith('node_modules/') &&
+!file.startsWith('package-lock.json') &&
+!file.startsWith('database.json') &&
+!file.startsWith('.cache/') &&
+!file.startsWith('tmp/')
+);
+
+        if (conflictedFiles.length> 0) {
+          conflictMsg = `⚠️ *Conflictos detectados en los siguientes archivos:*\n\n` +
+            conflictedFiles.map(f => `• ${f}`).join('\n') +
+            `\n\n🔧 *Solución recomendada:* reinstala el bot o resuelve los conflictos manualmente.`;
+}
+}
+} catch (statusError) {
+      console.error('Error al verificar conflictos:', statusError);
 }
 
-handler.help = ['fix', 'update', 'actualizar']
-handler.tags = ['owner']
-handler.command = ['fix', 'update', 'actualizar']
-handler.rowner = true
+    await conn.reply(m.chat, conflictMsg, m);
+}
+};
 
-export default handler
+const keywords = ['update', 'up', 'fix'];
+
+handler.help = ['update'];
+handler.tags = ['owner'];
+handler.command = ['update', 'up', 'fix'];
+handler.rowner = true;
+
+handler.all = async function (m) {
+  if (!m.text || typeof m.text!== 'string') return;
+
+  const input = m.text.trim().toLowerCase();
+
+  for (const keyword of keywords) {
+    if (input === keyword) {
+      return handler(m, { conn: this, args: []});
+}
+}
+};
+
+export default handler;
