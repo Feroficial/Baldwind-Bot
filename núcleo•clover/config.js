@@ -16,7 +16,7 @@ global.owner = [
   ['59177474230', '🜲 DEVLYONN 👑', true],
   ['59177474230'],
   ['584241819270', 'DEVLYON', true],
-  ['59177474230', 'BALDWIND IV 🛸', true],
+  ['573245517485', 'Danny IV 🛸', true],
   ['59177474230', 'DEVLYONN 🐦‍⬛', true]
 ];
 global.mods = ['59177474230'];
