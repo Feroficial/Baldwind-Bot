@@ -15,7 +15,7 @@ global.botNumber = ''; // BALDWIND IV - DEVLYONN
 global.owner = [
   ['59177474230', '🜲 DEVLYONN 👑', true],
   ['59177474230'],
-  ['584241819270', 'DEVLYONN', true],
+  ['584241819270', 'DEVLYON', true],
   ['59177474230', 'BALDWIND IV 🛸', true],
   ['59177474230', 'DEVLYONN 🐦‍⬛', true]
 ];
