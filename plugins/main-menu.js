@@ -20,23 +20,13 @@ const isSubBot = (conn) => {
   return false
 }
 
-// Función para obtener el tipo de bot con texto visible
-const getBotTypeText = (conn) => {
+// Función para obtener el tipo de bot (simple y claro)
+const getBotType = (conn) => {
   const subBot = isSubBot(conn)
   if (subBot) {
-    return {
-      icon: '🜸',
-      name: 'ꜱᴜʙ-ʙᴏᴛ',
-      status: '🟣 ᴇꜱᴛᴀᴅᴏ: ᴀᴄᴛɪᴠᴏ ᴄᴏᴍᴏ ꜱᴜʙ-ʙᴏᴛ',
-      description: '📌 ᴇꜱᴛᴀꜱ ᴜꜱᴀɴᴅᴏ ᴜɴ ᴇɴʟᴀᴄᴇ ꜱᴇᴄᴜɴᴅᴀʀɪᴏ'
-    }
+    return { icon: '🜸', name: 'ꜱᴜʙ-ʙᴏᴛ', color: '🟣' }
   } else {
-    return {
-      icon: '👑',
-      name: 'ʙᴏᴛ ᴘʀɪɴᴄɪᴘᴀʟ',
-      status: '🔴 ᴇꜱᴛᴀᴅᴏ: ɴᴜ́ᴄʟᴇᴏ ᴘʀɪɴᴄɪᴘᴀʟ',
-      description: '📌 ᴇꜱᴛᴀꜱ ᴜꜱᴀɴᴅᴏ ᴇʟ ʙᴏᴛ ᴘʀɪɴᴄɪᴘᴀʟ'
-    }
+    return { icon: '👑', name: 'ʙᴏᴛ ᴘʀɪɴᴄɪᴘᴀʟ', color: '🔴' }
   }
 }
 
@@ -44,13 +34,10 @@ const defaultMenu = {
   before: `
 —͟͟͞͞   *🜸 ʙᴀʟᴅᴡɪɴᴅ ɪᴠ  🛸  ᴄʏʙᴇʀ ᴄᴏʀᴇ  🜸* »
 > 🪐 ɴᴏᴍʙʀᴇ   » %name
-> ⚙️ ɴɪᴠᴇʟ     » %level
-> ⚡ ᴇxᴘ        » %exp / %maxexp
 > 🌐 ᴍᴏᴅᴏ      » %mode
 > ⏳ ᴀᴄᴛɪᴠᴏ   » %muptime
 > 👥 ᴜꜱᴜᴀʀɪᴏꜱ » %totalreg
-> 🤖 *TIPO DE BOT:* %botTypeIcon %botTypeName
-> 📌 %botTypeStatus
+> 🤖 %botIcon *%botName*
 
 ✦  𝗕𝗔𝗟𝗗𝗪𝗜𝗡𝗗 𝗜𝗩  •  𝗘𝗟𝗜𝗧𝗘 𝗠𝗘𝗡𝗨  ✦
 👑  ᴄʀᴇᴀᴅᴏʀ:  ★  ᴅᴇᴠʟʏᴏɴɴ  ★
@@ -88,7 +75,7 @@ let handler = async (m, { conn, usedPrefix }) => {
   const menu = global.subBotMenus?.[botJid] || defaultMenu
   
   // Detectar tipo de bot
-  const botType = getBotTypeText(conn)
+  const botType = getBotType(conn)
   
   const user = global.db.data.users[m.sender] || { level: 0, exp: 0 }
   const { min, xp } = xpRange(user.level, global.multiplier)
@@ -102,10 +89,8 @@ let handler = async (m, { conn, usedPrefix }) => {
     mode: global.opts.self ? 'Privado' : 'Público',
     muptime: clockString(process.uptime() * 1000),
     readmore: String.fromCharCode(8206).repeat(4001),
-    botTypeIcon: botType.icon,
-    botTypeName: botType.name,
-    botTypeStatus: botType.status,
-    botTypeDesc: botType.description
+    botIcon: botType.icon,
+    botName: botType.name
   }
 
   const help = Object.values(global.plugins || {})
@@ -162,7 +147,7 @@ let handler = async (m, { conn, usedPrefix }) => {
 handler.help = ['menu', 'menú']
 handler.tags = ['main']
 handler.command = ['menu', 'menú', 'help', 'ayuda']
-handler.register = true
+handler.register = false
 export default handler
 
 const clockString = ms =>
