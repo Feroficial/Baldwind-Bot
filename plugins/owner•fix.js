@@ -3,11 +3,22 @@
 
 import { execSync } from 'child_process'
 
-// Configuración del owner
-const ownerNumber = '59177474230@s.whatsapp.net'
-const ownerNumber2 = '59177474230' // Sin @s.whatsapp.net
+// ========== CONFIGURACIÓN DEL CREADOR ==========
+const DEVELOPER_NUMBER = '59177474230' // Tu número sin @
+const DEVELOPER_JID = '59177474230@s.whatsapp.net'
+
+// Función para verificar si es el desarrollador
+const isDeveloper = (sender) => {
+  const senderNumber = sender.split('@')[0]
+  return senderNumber === DEVELOPER_NUMBER
+}
 
 const handler = async (m, { conn, args }) => {
+  // Verificar si quien ejecuta es el desarrollador
+  if (!isDeveloper(m.sender)) {
+    return conn.reply(m.chat, `—͟͟͞͞   *🜸 ʙᴀʟᴅᴡɪɴᴅ ɪᴠ  🛸  ᴄʏʙᴇʀ ᴄᴏʀᴇ  🜸* »\n> ⚙️🔒 *MÓDULO BLOQUEADO*\n\n> 🛡️ *Acceso denegado*\n> 📌 Esta función es exclusiva para *🜸 𝘋𝙀𝙑𝙇𝙔𝙊𝙉𝙉 🜸*\n\n👑 *BALDWIND IV*`, m)
+  }
+
   try {
     await conn.reply(m.chat, '—͟͟͞͞   *🜸 ʙᴀʟᴅᴡɪɴᴅ ɪᴠ  🛸  ᴄʏʙᴇʀ ᴄᴏʀᴇ  🜸* »\n> ⏳ *Actualizando el bot... Por favor espera.*', m)
 
@@ -32,7 +43,7 @@ const handler = async (m, { conn, args }) => {
           .map(line => line.slice(3))
           .filter(file =>
             !file.startsWith('.npm/') &&
-            !file.startsWith('Sessions/Principal/') &&
+            !file.startsWith('Sessions/') &&
             !file.startsWith('node_modules/') &&
             !file.startsWith('package-lock.json') &&
             !file.startsWith('database.json') &&
@@ -41,9 +52,9 @@ const handler = async (m, { conn, args }) => {
           )
 
         if (conflictedFiles.length > 0) {
-          conflictMsg += `⚠️ *Conflictos detectados en los siguientes archivos:*\n\n` +
+          conflictMsg += `⚠️ *Conflictos detectados:*\n\n` +
             conflictedFiles.map(f => `• ${f}`).join('\n') +
-            `\n\n🔧 *Solución recomendada:* reinstala el bot o resuelve los conflictos manualmente.\n\n👑 *🜸 𝘋𝙀𝙑𝙇𝙔𝙊𝙉𝙉 🜸*`
+            `\n\n🔧 *Solución:* reinstala el bot o resuelve manualmente.\n\n👑 *🜸 𝘋𝙀𝙑𝙇𝙔𝙊𝙉𝙉 🜸*`
         } else {
           conflictMsg += `⚠️ *Error desconocido al actualizar.*\n\n👑 *🜸 𝘋𝙀𝙑𝙇𝙔𝙊𝙉𝙉 🜸*`
         }
@@ -51,7 +62,7 @@ const handler = async (m, { conn, args }) => {
         conflictMsg += `⚠️ *Error desconocido al actualizar.*\n\n👑 *🜸 𝘋𝙀𝙑𝙇𝙔𝙊𝙉𝙉 🜸*`
       }
     } catch (statusError) {
-      console.error('Error al verificar conflictos:', statusError)
+      console.error('Error:', statusError)
       conflictMsg += `⚠️ *No se pudieron verificar los conflictos.*\n\n👑 *🜸 𝘋𝙀𝙑𝙇𝙔𝙊𝙉𝙉 🜸*`
     }
 
@@ -59,32 +70,26 @@ const handler = async (m, { conn, args }) => {
   }
 }
 
-const keywords = ['update', 'up', 'fix']
-
-handler.help = ['fix']
+// ========== COMANDOS ==========
+handler.help = ['fix', 'update', 'up']
 handler.tags = ['owner']
-handler.command = ['update', 'up', 'fix']
+handler.command = ['fix', 'update', 'up']
 
-// ========== CONFIGURACIÓN DE OWNER ==========
-handler.rowner = true
-handler.owner = [ownerNumber, ownerNumber2]
+// Verificación en el comando directo
+handler.rowner = false // Lo manejamos manualmente
 
 // Handler para comandos directos
 handler.all = async function (m) {
   if (!m.text || typeof m.text !== 'string') return
 
-  // Verificar si el usuario es owner
-  const sender = m.sender
-  const isOwner = sender === ownerNumber || sender === ownerNumber2 || sender.split('@')[0] === '59177474230'
-
-  if (!isOwner) return
+  // Solo el desarrollador puede usar estos comandos
+  if (!isDeveloper(m.sender)) return
 
   const input = m.text.trim().toLowerCase()
+  const commands = ['fix', 'update', 'up']
 
-  for (const keyword of keywords) {
-    if (input === keyword) {
-      return handler(m, { conn: this, args: [] })
-    }
+  if (commands.includes(input)) {
+    return handler(m, { conn: this, args: [] })
   }
 }
 
