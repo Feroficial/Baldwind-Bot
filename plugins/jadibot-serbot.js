@@ -65,34 +65,32 @@ let blackJBOptions = {}
 
 if (!global.conns) global.conns = []
 
-function msToTime(duration) {
-  var seconds = Math.floor((duration / 1000) % 60),
-      minutes = Math.floor((duration / (1000 * 60)) % 60)
-  minutes = (minutes < 10) ? '0' + minutes : minutes
-  seconds = (seconds < 10) ? '0' + seconds : seconds
-  return minutes + ' m y ' + seconds + ' s '
+// ========== FUNCIÓN PARA OBTENER EL NÚMERO DEL PRÓXIMO SUB-BOT ==========
+const getNextSubBotNumber = () => {
+  const subBots = global.conns.filter(c => c.user && c.ws.socket && c.ws.socket.readyState !== ws.CLOSED)
+  return subBots.length + 1
 }
 
 // ========== FUNCIONES PARA CAMBIAR DATOS DEL SUB-BOT ==========
-const SUB_BOT_NAME = '🜸 BALDWIND SUB-BOT 🛸'
-const SUB_BOT_BIO = '—͟͟͞͞ 🜸 BALDWIND IV • SUB-BOT 🛸 ⌬'
 const SUB_BOT_PIC = 'https://files.catbox.moe/xdpxey.jpg'
 
-const changeSubBotName = async (sock) => {
+const changeSubBotName = async (sock, number) => {
   try {
+    const SUB_BOT_NAME = `🜸 BALDWIND SUB-BOT ${number} 🛸`
     await sock.updateProfileName(SUB_BOT_NAME)
     console.log(chalk.bold.green(`✅ Sub-Bot renombrado a: ${SUB_BOT_NAME}`))
-    return true
+    return SUB_BOT_NAME
   } catch (e) {
     console.log(chalk.bold.red(`❌ Error al cambiar nombre: ${e.message}`))
-    return false
+    return null
   }
 }
 
-const changeSubBotBio = async (sock) => {
+const changeSubBotBio = async (sock, number) => {
   try {
+    const SUB_BOT_BIO = `—͟͟͞͞ 🜸 BALDWIND IV • SUB-BOT ${number} 🛸 ⌬`
     await sock.updateProfileStatus(SUB_BOT_BIO)
-    console.log(chalk.bold.green(`✅ Biografía del Sub-Bot actualizada`))
+    console.log(chalk.bold.green(`✅ Biografía del Sub-Bot ${number} actualizada`))
     return true
   } catch (e) {
     console.log(chalk.bold.red(`❌ Error al cambiar biografía: ${e.message}`))
@@ -113,6 +111,14 @@ const changeSubBotProfilePic = async (sock) => {
     console.log(chalk.bold.red(`❌ Error al cambiar foto: ${e.message}`))
     return false
   }
+}
+
+function msToTime(duration) {
+  var seconds = Math.floor((duration / 1000) % 60),
+      minutes = Math.floor((duration / (1000 * 60)) % 60)
+  minutes = (minutes < 10) ? '0' + minutes : minutes
+  seconds = (seconds < 10) ? '0' + seconds : seconds
+  return minutes + ' m y ' + seconds + ' s '
 }
 
 let handler = async (m, { conn, args, usedPrefix, command }) => {
@@ -140,7 +146,7 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
   if (subBotsCount >= maxSubBots) {
     return m.reply(`❌ No se han encontrado espacios para *Sub-Bots* disponibles.`)
   }
-  
+
   const availableSlots = maxSubBots - subBotsCount
 
   let who = m.mentionedJid && m.mentionedJid[0] ? m.mentionedJid[0] : m.fromMe ? conn.user.jid : m.sender
@@ -150,7 +156,7 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
   if (!fs.existsSync(pathblackJadiBot)) {
     fs.mkdirSync(pathblackJadiBot, { recursive: true })
   }
-  
+
   blackJBOptions.pathblackJadiBot = pathblackJadiBot
   blackJBOptions.m = m
   blackJBOptions.conn = conn
@@ -289,16 +295,19 @@ export async function blackJadiBot(options) {
       if (connection == 'open') {
         let userName = sock.authState.creds.me?.name || 'Anónimo'
         
-        // ========== CAMBIAR DATOS DEL SUB-BOT AUTOMÁTICAMENTE ==========
-        await changeSubBotName(sock)
-        await changeSubBotBio(sock)
-        await changeSubBotProfilePic(sock)
+        // Obtener el número del Sub-Bot (1, 2, 3, etc.)
+        const subBotNumber = getNextSubBotNumber()
         
+        // ========== CAMBIAR DATOS DEL SUB-BOT AUTOMÁTICAMENTE ==========
+        const newName = await changeSubBotName(sock, subBotNumber)
+        await changeSubBotBio(sock, subBotNumber)
+        await changeSubBotProfilePic(sock)
+
         console.log(
           chalk.bold.cyanBright(
             `\n❒────────────【• SUB-BOT BALDWIND IV •】────────────❒\n│\n│ 🟢 ${userName} (+${path.basename(
               pathblackJadiBot
-            )}) conectado exitosamente.\n│ 👑 Creador: DEVLYONN\n│ 📛 Nuevo nombre: ${SUB_BOT_NAME}\n│\n❒────────────【• CONECTADO •】────────────❒`
+            )}) conectado exitosamente.\n│ 👑 Creador: DEVLYONN\n│ 📛 Nuevo nombre: 🜸 BALDWIND SUB-BOT ${subBotNumber} 🛸\n│\n❒────────────【• CONECTADO •】────────────❒`
           )
         )
         sock.isInit = true
@@ -314,7 +323,7 @@ export async function blackJadiBot(options) {
             {
               text: args[0]
                 ? `@${m.sender.split('@')[0]}, ya estás conectado, leyendo mensajes entrantes...\n\n🛸 BALDWIND IV • DEVLYONN`
-                : `@${m.sender.split('@')[0]}, *genial ya eres parte de nuestra familia BALDWIND IV Sub-Bots.*\n> Tu nombre ha sido cambiado a *${SUB_BOT_NAME}*\n> Usa el comando .personalizar para personalizar tu bot.\n\n👑 Creador: DEVLYONN`,
+                : `@${m.sender.split('@')[0]}, *genial ya eres parte de nuestra familia BALDWIND IV Sub-Bots.*\n> Tu nombre ha sido cambiado a *🜸 BALDWIND SUB-BOT ${subBotNumber} 🛸*\n> Usa el comando .personalizar para personalizar tu bot.\n\n👑 Creador: DEVLYONN`,
               mentions: [m.sender]
             },
             { quoted: m }
