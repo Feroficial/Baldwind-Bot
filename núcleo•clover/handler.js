@@ -12,7 +12,6 @@ const { proto } = (await import('@whiskeysockets/baileys')).default;
 const isNumber = x => typeof x === 'number' && !isNaN(x);
 const delay = ms => isNumber(ms) && new Promise(resolve => setTimeout(() => resolve(), ms));
 
-// ========== FUNCIONES DE UTILIDAD ==========
 const clockString = (ms) => {
   if (!ms || isNaN(ms)) return '00:00:00';
   const hours = Math.floor(ms / 3600000);
@@ -166,9 +165,9 @@ export async function handler(chatUpdate) {
     const isAdmin = isRAdmin || user.admin === 'admin';
     const isBotAdmin = !!bot.admin;
 
-    // ========== BIENVENIDA AUTOMÁTICA PARA NUEVOS MIEMBROS ==========
-    if (m.messageStubType === 1) {
-      try {
+    // ========== BIENVENIDA AUTOMÁTICA ==========
+    try {
+      if (m.messageStubType === 1) {
         const groupMetadata = await this.groupMetadata(m.chat);
         const participants = m.messageStubParameters;
         
@@ -197,23 +196,17 @@ export async function handler(chatUpdate) {
           welcomeText += `╰⋆꙳•❅‧*₊⋆꙳︎‧*❆₊⋆╯\n`;
           welcomeText += `⌬ ʙᴀʟᴅᴡɪɴᴅ ɪᴠ ᴄʏʙᴇʀ ᴍᴇɴᴜ 🧬`;
           
-          // Dar monedas de bienvenida
           if (global.db.data.users[participant]) {
             global.db.data.users[participant].monedas = (global.db.data.users[participant].monedas || 0) + 100;
-            global.db.data.users[participant].exp = (global.db.data.users[participant].exp || 0) + 50;
             await global.db.write();
           }
           
           await this.sendMessage(m.chat, { text: welcomeText, mentions: [participant] });
         }
-      } catch (error) {
-        console.error('Error en bienvenida:', error);
       }
-    }
-
-    // ========== DESPEDIDA AUTOMÁTICA ==========
-    if (m.messageStubType === 2) {
-      try {
+      
+      // ========== DESPEDIDA AUTOMÁTICA ==========
+      if (m.messageStubType === 2) {
         const groupMetadata = await this.groupMetadata(m.chat);
         const participants = m.messageStubParameters;
         
@@ -235,11 +228,12 @@ export async function handler(chatUpdate) {
           
           await this.sendMessage(m.chat, { text: goodbyeText, mentions: [participant] });
         }
-      } catch (error) {
-        console.error('Error en despedida:', error);
       }
+    } catch (err) {
+      console.error('Error en bienvenida/despedida:', err);
     }
 
+    // ========== PROCESAR PLUGINS ==========
     const ___dirname = path.join(path.dirname(fileURLToPath(import.meta.url)), './plugins');
     for (let name in global.plugins) {
       let plugin = global.plugins[name];
