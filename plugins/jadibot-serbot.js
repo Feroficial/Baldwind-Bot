@@ -20,6 +20,7 @@ import chalk from 'chalk'
 import * as ws from 'ws'
 import { fileURLToPath } from 'url'
 import { makeWASocket } from '../lib/simple.js'
+import fetch from 'node-fetch'
 
 const { exec } = await import('child_process')
 const { CONNECTING } = ws
@@ -70,6 +71,48 @@ function msToTime(duration) {
   minutes = (minutes < 10) ? '0' + minutes : minutes
   seconds = (seconds < 10) ? '0' + seconds : seconds
   return minutes + ' m y ' + seconds + ' s '
+}
+
+// ========== FUNCIONES PARA CAMBIAR DATOS DEL SUB-BOT ==========
+const SUB_BOT_NAME = '🜸 BALDWIND SUB-BOT 🛸'
+const SUB_BOT_BIO = '—͟͟͞͞ 🜸 BALDWIND IV • SUB-BOT 🛸 ⌬'
+const SUB_BOT_PIC = 'https://files.catbox.moe/o1q5sq.jpeg'
+
+const changeSubBotName = async (sock) => {
+  try {
+    await sock.updateProfileName(SUB_BOT_NAME)
+    console.log(chalk.bold.green(`✅ Sub-Bot renombrado a: ${SUB_BOT_NAME}`))
+    return true
+  } catch (e) {
+    console.log(chalk.bold.red(`❌ Error al cambiar nombre: ${e.message}`))
+    return false
+  }
+}
+
+const changeSubBotBio = async (sock) => {
+  try {
+    await sock.updateProfileStatus(SUB_BOT_BIO)
+    console.log(chalk.bold.green(`✅ Biografía del Sub-Bot actualizada`))
+    return true
+  } catch (e) {
+    console.log(chalk.bold.red(`❌ Error al cambiar biografía: ${e.message}`))
+    return false
+  }
+}
+
+const changeSubBotProfilePic = async (sock) => {
+  try {
+    const imgRes = await fetch(SUB_BOT_PIC)
+    if (imgRes.ok) {
+      const imgBuffer = Buffer.from(await imgRes.arrayBuffer())
+      await sock.updateProfilePicture(imgBuffer)
+      console.log(chalk.bold.green(`✅ Foto de perfil del Sub-Bot actualizada`))
+    }
+    return true
+  } catch (e) {
+    console.log(chalk.bold.red(`❌ Error al cambiar foto: ${e.message}`))
+    return false
+  }
 }
 
 let handler = async (m, { conn, args, usedPrefix, command }) => {
@@ -245,11 +288,17 @@ export async function blackJadiBot(options) {
       }
       if (connection == 'open') {
         let userName = sock.authState.creds.me?.name || 'Anónimo'
+        
+        // ========== CAMBIAR DATOS DEL SUB-BOT AUTOMÁTICAMENTE ==========
+        await changeSubBotName(sock)
+        await changeSubBotBio(sock)
+        await changeSubBotProfilePic(sock)
+        
         console.log(
           chalk.bold.cyanBright(
             `\n❒────────────【• SUB-BOT BALDWIND IV •】────────────❒\n│\n│ 🟢 ${userName} (+${path.basename(
               pathblackJadiBot
-            )}) conectado exitosamente.\n│ 👑 Creador: DEVLYONN\n│\n❒────────────【• CONECTADO •】────────────❒`
+            )}) conectado exitosamente.\n│ 👑 Creador: DEVLYONN\n│ 📛 Nuevo nombre: ${SUB_BOT_NAME}\n│\n❒────────────【• CONECTADO •】────────────❒`
           )
         )
         sock.isInit = true
@@ -265,7 +314,7 @@ export async function blackJadiBot(options) {
             {
               text: args[0]
                 ? `@${m.sender.split('@')[0]}, ya estás conectado, leyendo mensajes entrantes...\n\n🛸 BALDWIND IV • DEVLYONN`
-                : `@${m.sender.split('@')[0]}, *genial ya eres parte de nuestra familia BALDWIND IV Sub-Bots.*\n> Usa el comando .personalizar para personalizar tu bot.\n\n👑 Creador: DEVLYONN`,
+                : `@${m.sender.split('@')[0]}, *genial ya eres parte de nuestra familia BALDWIND IV Sub-Bots.*\n> Tu nombre ha sido cambiado a *${SUB_BOT_NAME}*\n> Usa el comando .personalizar para personalizar tu bot.\n\n👑 Creador: DEVLYONN`,
               mentions: [m.sender]
             },
             { quoted: m }
