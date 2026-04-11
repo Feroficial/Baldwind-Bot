@@ -4,7 +4,6 @@ import { fileURLToPath } from 'url'
 import { setupMaster, fork } from 'cluster'
 import { existsSync, writeFileSync } from 'fs'
 import cfonts from 'cfonts'
-import { createInterface } from 'readline'
 import chalk from 'chalk'
 
 console.log(chalk.bold.hex('#00FFFF')('\n✞─ Iniciando BALDWIND IV ─✞'))
@@ -13,38 +12,12 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 const require = createRequire(__dirname)
 require(join(__dirname, './package.json'))
 
-const rl = createInterface({
-  input: process.stdin,
-  output: process.stdout
-})
-
-async function barraCarga() {
-  const frames = [
-    '[⏳] Iniciando BALDWIND IV...',
-    '[🜸] Conectando con el Reino...',
-    '[🛸] Cargando sistema...',
-    '[⚡] Sincronizando...',
-    '[✅] BALDWIND IV OPERATIVO.'
-  ]
-  for (let frame of frames) {
-    process.stdout.write('\r' + chalk.cyanBright(frame))
-    await new Promise(res => setTimeout(res, 350))
-  }
-  console.log()
-}
-
 async function iniciarBaldwind() {
   console.clear()
 
   console.log(chalk.bold.cyanBright('\n⟦ ⌬ BALDWIND IV V.777 ⟧'))
   console.log(chalk.gray('⌬ Iniciando sistema...'))
-  await new Promise(res => setTimeout(res, 600))
-
-  await barraCarga()
-  await new Promise(res => setTimeout(res, 500))
-
-  console.log(chalk.redBright('\n☰✦☰═☰  B A L D W I N D   I V  ☰═☰✦☰'))
-  await new Promise(res => setTimeout(res, 700))
+  await new Promise(res => setTimeout(res, 800))
 
   cfonts.say('BALDWIND IV', {
     font: 'block',
@@ -66,6 +39,7 @@ async function iniciarBaldwind() {
 
   console.log(chalk.bold.hex('#FF00FF')('\n⌬═════════════════════⌬'))
   console.log(chalk.bold.white('      SISTEMA CREADO POR: ') + chalk.bold.hex('#FFD700')('🜸 DEVLYONN 🜸'))
+  console.log(chalk.bold.white('      BALDWIND IV - CYBER CORE EDITION'))
   console.log(chalk.bold.hex('#FF00FF')('⌬═══════════════════════⌬\n'))
 
   await new Promise(res => setTimeout(res, 1200))
