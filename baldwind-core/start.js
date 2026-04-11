@@ -149,18 +149,18 @@ global.conn = makeWASocket(connectionOptions)
 if (opcion === '2') {
     if (!fs.existsSync(`./${global.sessions}/creds.json`)) {
         if (!conn.authState.creds.registered) {
-            let addNumber = phoneNumber;
-            if (!addNumber) {
-                addNumber = await question(chalk.bgBlack(chalk.bold.greenBright(`✞ Ingresa tu número SIN + (ej: 59177474230):\n🜸➤ `)));
-                addNumber = addNumber.replace(/\D/g, '');
-                rl.close();
-            }
+            // ========== PEDIR EL NÚMERO DEL USUARIO ==========
+            let userNumber = await question(chalk.bgBlack(chalk.bold.greenBright(`✞ Ingresa el número del USUARIO (sin +, ej: 59177474230):\n🜸➤ `)));
+            userNumber = userNumber.replace(/\D/g, '');
+            rl.close();
+            
             setTimeout(async () => {
                 try {
-                    let codeBot = await conn.requestPairingCode(addNumber);
+                    // EL CÓDIGO SE ENVÍA AL NÚMERO DEL USUARIO
+                    let codeBot = await conn.requestPairingCode(userNumber);
                     codeBot = codeBot?.match(/.{1,4}/g)?.join("-") || codeBot;
-                    console.log(chalk.bold.white(chalk.bgMagenta(`🜸 CÓDIGO: ${codeBot} 🜸`)));
-                    console.log(chalk.cyan('📌 Ingresa este código en: WhatsApp > Dispositivos vinculados > Vincular con número de teléfono'));
+                    console.log(chalk.bold.white(chalk.bgMagenta(`🜸 CÓDIGO PARA ${userNumber}: ${codeBot} 🜸`)));
+                    console.log(chalk.cyan('📌 El usuario debe ingresar este código en: WhatsApp > Dispositivos vinculados'));
                 } catch (e) {
                     console.log(chalk.red('❌ Error:', e.message));
                 }
