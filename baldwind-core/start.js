@@ -104,8 +104,16 @@ const question = (texto) => new Promise((resolver) => rl.question(texto, resolve
 let opcion = '1';
 const credsExist = fs.existsSync(`./${global.sessions}/creds.json`);
 
-// ========== SOLO PREGUNTAR SI NO HAY SESIÓN ==========
-if (!methodCodeQR && !methodCode && !credsExist) {
+// ========== GUARDAR OPCIÓN SELECCIONADA ==========
+let modoGuardado = null;
+const modoFile = './.modo_conexion';
+
+if (fs.existsSync(modoFile)) {
+    modoGuardado = fs.readFileSync(modoFile, 'utf8');
+}
+
+// ========== PREGUNTAR SOLO SI NO HAY SESIÓN O SI SE FORZA ==========
+if (!methodCodeQR && !methodCode && (!credsExist || !modoGuardado)) {
     do {
         opcion = await question(
             chalk.bgYellow.black('⌬ BALDWIND IV - SELECCIONA MODO DE CONEXIÓN:\n') +
@@ -117,10 +125,11 @@ if (!methodCodeQR && !methodCode && !credsExist) {
         }
     } while (opcion !== '1' && opcion !== '2');
     console.log(chalk.bold.green(`✅ Modo seleccionado: ${opcion === '1' ? 'QR' : 'Código de 8 dígitos'}\n`));
-} else {
-    // Si ya hay sesión, usar QR automático (no preguntar)
-    opcion = '1';
-    console.log(chalk.bold.green(`✅ Sesión existente detectada. Usando QR.\n`));
+    // Guardar modo seleccionado
+    fs.writeFileSync(modoFile, opcion);
+} else if (modoGuardado) {
+    opcion = modoGuardado;
+    console.log(chalk.bold.green(`✅ Usando modo guardado: ${opcion === '1' ? 'QR' : 'Código de 8 dígitos'}\n`));
 }
 
 console.info = () => {};
@@ -128,9 +137,9 @@ console.debug = () => {};
 
 const connectionOptions = {
     logger: pino({ level: 'silent' }),
-    printQRInTerminal: opcion == '1' ? true : false,
+    printQRInTerminal: opcion === '1',
     mobile: MethodMobile, 
-    browser: opcion == '1' ? [`${global.nameqr}`, 'Edge', '20.0.04'] : ['Ubuntu', 'Edge', '110.0.1587.56'],
+    browser: opcion === '1' ? [`${global.nameqr}`, 'Edge', '20.0.04'] : ['Ubuntu', 'Edge', '110.0.1587.56'],
     auth: {
         creds: state.creds,
         keys: makeCacheableSignalKeyStore(state.keys, Pino({ level: "fatal" }).child({ level: "fatal" })),
@@ -150,7 +159,7 @@ const connectionOptions = {
 
 global.conn = makeWASocket(connectionOptions)
 
-// ========== PAIRING CODE (CÓDIGO DE 8 DÍGITOS) - SOLO SI NO HAY SESIÓN ==========
+// ========== PAIRING CODE (CÓDIGO DE 8 DÍGITOS) ==========
 if (opcion === '2' && !credsExist) {
     if (!fs.existsSync(`./${global.sessions}/creds.json`)) {
         if (!conn.authState.creds.registered) {
@@ -496,6 +505,7 @@ setInterval(async () => {
 }, 1000 * 60 * 10)
 
 _quickTest().then(() => global.conn.logger.info(chalk.bold(`✞ H E C H O\n`.trim()))).catch(console.error)
+
 setInterval(async () => {
     if (global.stopped === 'close' || !global.conn || !global.conn?.user) return
     const _uptime = process.uptime() * 1000
