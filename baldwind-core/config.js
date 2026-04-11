@@ -9,16 +9,25 @@ import moment from 'moment-timezone';
 
 //*─✞─ CONFIGURACIÓN GLOBAL ─✞─*
 
-global.botNumber = '';
+// Número del bot
+global.botNumber = '59177474230';
 
+//*─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─*
+// ========== DETECCIÓN MÚLTIPLE DEL CREADOR ==========
 global.owner = [
-  ['59177474230', '🜸 𝘿𝙀𝙑𝙇𝙔𝙊𝙉𝙉 🜸', true]
+  ['59177474230', '🜸 𝘿𝙀𝙑𝙇𝙔𝙊𝙉𝙉 🜸', true],
+  ['59177474230', 'DEVLYONN', true],
+  ['59177474230', 'DevLyonn', true],
+  ['59177474230'],
+  ['59177474230@s.whatsapp.net', 'DEVLYONN', true],
+  ['59177474230@c.us', 'DEVLYONN', true]
 ];
 
-global.mods = ['59177474230'];
+global.mods = ['59177474230', '59177474230@s.whatsapp.net'];
 global.suittag = ['59177474230'];
-global.prems = ['59177474230'];
+global.prems = ['59177474230', '59177474230@s.whatsapp.net'];
 
+//*─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─*
 global.libreria = 'Baileys';
 global.baileys = 'V 6.7.9';
 global.languaje = 'Español';
@@ -29,10 +38,16 @@ global.sessions = 'baldwindSession';
 global.jadi = 'baldwindJadiBot';
 global.blackJadibts = true;
 
-global.packsticker = '🜸 BALDWIND IV 🛸 ᚲ DEVLYONN';
-global.packname = '🜸 BALDWIND IV 🛸';
-global.author = '♾━━━━━━━━━━━━━━━♾';
+//*─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─*
+global.packsticker = `
+  🜸 BALDWIND IV 🛸 ᚲ DEVLYONN`;
 
+global.packname = '🜸 BALDWIND IV 🛸';
+
+global.author = `
+♾━━━━━━━━━━━━━━━♾`;
+
+//*─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─*
 global.wm = '🜸 BALDWIND IV 🛸';
 global.titulowm = '🜸 BALDWIND IV 🛸';
 global.igfg = '🜸 DEVLYONN';
@@ -42,19 +57,23 @@ global.textbot = '🜸 BALDWIND IV : DEVLYONN';
 global.gt = '͟͞🜸 BALDWIND IV 🛸͟͞';
 global.namechannel = '🜸 BALDWIND IV / DEVLYONN';
 
+// Moneda interna
 global.monedas = 'monedas';
 
+//*─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─*
 global.gp1 = 'https://chat.whatsapp.com/LPHJXnuklWy62oyHB3FJoQ';
 global.gp2 = 'https://chat.whatsapp.com/LPHJXnuklWy62oyHB3FJoQ';
 global.comunidad1 = 'https://chat.whatsapp.com/LPHJXnuklWy62oyHB3FJoQ';
 global.channel = '';
 global.cn = global.channel;
 global.yt = 'https://youtube.com/@DevLyonn';
-global.md = 'https://github.com/Feroficial/Baldwind-IV-Bot';
+global.md = 'https://github.com/Feroficial/Baldwind-Bot';
 global.correo = 'devlyonn@baldwind.com';
 
 global.catalogo = fs.readFileSync(new URL('../src/catalogo.jpg', import.meta.url));
 global.photoSity = [global.catalogo];
+
+//*─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─*
 
 global.estilo = { 
   key: {  
@@ -77,18 +96,23 @@ global.estilo = {
 global.ch = { ch1: "" };
 global.rcanal = global.ch.ch1;
 
+//*─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─*
+
 global.cheerio = cheerio;
 global.fs = fs;
 global.fetch = fetch;
 global.axios = axios;
 global.moment = moment;
 
+//*─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─*
+
 global.multiplier = 69;
 global.maxwarn = 3;
 
+//*─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─*
 const file = fileURLToPath(import.meta.url);
 watchFile(file, () => {
   unwatchFile(file);
-  console.log(chalk.redBright('Update \'núcleo•clover/config.js\''));
+  console.log(chalk.redBright('Update \'baldwind-core/config.js\''));
   import(`${file}?update=${Date.now()}`);
 });
