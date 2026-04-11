@@ -166,7 +166,7 @@ export async function handler(chatUpdate) {
     const isBotAdmin = !!bot.admin;
 
     // ========== PROCESAR PLUGINS ==========
-    const ___dirname = path.join(path.dirname(fileURLToPath(import.meta.url)), './plugins');
+    const ___dirname = path.join(path.dirname(fileURLToPath(import.meta.url)), '../plugins');
     for (let name in global.plugins) {
       let plugin = global.plugins[name];
       if (!plugin || plugin.disabled) continue;
