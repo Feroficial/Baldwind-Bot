@@ -136,7 +136,7 @@ m.exp += Math.ceil(Math.random() * 10);
 let usedPrefix;
 let _user = global.db.data.users[m.sender];
 
-// Definir prefijo vacío (acepta cualquier texto como comando)
+// CONFIGURACIÓN SIN PREFIJO - cualquier texto es comando
 global.prefix = /^/;
 
 const ___dirname = path.join(path.dirname(fileURLToPath(import.meta.url)), './plugins');
@@ -148,7 +148,7 @@ for (let name in global.plugins) {
   if (typeof plugin.all === 'function') await plugin.all.call(this, m, { chatUpdate, __dirname: ___dirname, __filename }).catch(console.error);
 
   const str2Regex = str => str.replace(/[|\\{}()[\]^$+*?.]/g, '\\$&');
-  let _prefix = plugin.customPrefix || this.prefix || global.prefix;
+  let _prefix = plugin.customPrefix || /^/;  // Sin prefijo
   let match = (_prefix instanceof RegExp ? [[_prefix.exec(m.text), _prefix]] :
     Array.isArray(_prefix) ? _prefix.map(p => [p instanceof RegExp ? p.exec(m.text) : new RegExp(str2Regex(p)).exec(m.text), p instanceof RegExp ? p : new RegExp(str2Regex(p))]) :
     [[new RegExp(str2Regex(_prefix)).exec(m.text), new RegExp(str2Regex(_prefix))]]
@@ -157,8 +157,8 @@ for (let name in global.plugins) {
   if (typeof plugin.before === 'function' && await plugin.before.call(this, m, { match, conn: this, chatUpdate, __dirname: ___dirname, __filename })) continue;
   if (typeof plugin !== 'function') continue;
 
-  if ((usedPrefix = (match[0] || '')[0]) || true) { // <-- MODIFICADO: siempre entra
-    let noPrefix = m.text;
+  if ((usedPrefix = (match[0] || '')[0]) || true) {  // Siempre entra
+    let noPrefix = m.text;  // Sin eliminar prefijo
     let [command, ...args] = noPrefix.trim().split` `.filter(Boolean);
     args = args || [];
     let _args = noPrefix.trim().split` `.slice(1);
