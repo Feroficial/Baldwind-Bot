@@ -24,22 +24,30 @@ const getBotType = (conn) => {
 
 const defaultMenu = {
   before: `
-—͟͟͞͞   *🜸 ʙᴀʟᴅᴡɪɴᴅ ɪᴠ  🛸  ᴄʏʙᴇʀ ᴄᴏʀᴇ  🜸* »
+◈────═══✧༺༻✧═══────◈
+     🜸 ʙᴀʟᴅᴡɪɴᴅ ɪᴠ  🛸
+        ᴄʏʙᴇʀ ᴄᴏʀᴇ
+◈────═══✧༺༻✧═══────◈
+
+✦ 𝗜𝗡𝗙𝗢𝗥𝗠𝗔𝗖𝗜𝗢́𝗡 ✦
 > 🪐 ɴᴏᴍʙʀᴇ   » %name
 > 🌐 ᴍᴏᴅᴏ      » %mode
 > ⏳ ᴀᴄᴛɪᴠᴏ   » %muptime
 > 👥 ᴜꜱᴜᴀʀɪᴏꜱ » %totalreg
 > 🤖 %botIcon *%botName*
-> 📊 ᴄᴏᴍᴀɴᴅᴏꜱ: %totalCmds
+> 📊 ᴄᴏᴍᴀɴᴅᴏꜱ » %totalCmds
 
-✦  𝗕𝗔𝗟𝗗𝗪𝗜𝗡𝗗 𝗜𝗩  •  𝗘𝗟𝗜𝗧𝗘 𝗠𝗘𝗡𝗨  ✦
-👑  ᴄʀᴇᴀᴅᴏʀ:  ★  ᴅᴇᴠʟʏᴏɴɴ  ★
+◈────═══✧༺༻✧═══────◈
+
+     ✦ 𝗠𝗘𝗡𝗨 𝗣𝗥𝗜𝗡𝗖𝗜𝗣𝗔𝗟 ✦
+     👑 ᴄʀᴇᴀᴅᴏʀ:  ★ ᴅᴇᴠʟʏᴏɴɴ ★
+
 %readmore
 `.trimStart(),
-  header: '\n⧼⋆꙳•〔 🛸 %category (%count) 〕⋆꙳•⧽',
-  body: '> 🔖 %cmd',
-  footer: '╰⋆꙳•❅‧*₊⋆꙳︎‧*❆₊⋆╯',
-  after: '\n⌬ ʙᴀʟᴅᴡɪɴᴅ ɪᴠ ᴄʏʙᴇʀ ᴍᴇɴᴜ 🧬 - ᴄᴏɴᴇᴄᴛᴀᴅᴏ ᴘᴏʀ: ᴅᴇᴠʟʏᴏɴɴ'
+  header: '\n◈────═══✧༺༻✧═══────◈\n     🛸 %category (%count)\n◈────═══✧༺༻✧═══────◈',
+  body: '     🔖 %cmd',
+  footer: '',
+  after: '\n◈────═══✧༺༻✧═══────◈\n     ⌬ ʙᴀʟᴅᴡɪɴᴅ ɪᴠ ᴄʏʙᴇʀ ᴍᴇɴᴜ 🧬\n◈────═══✧༺༻✧═══────◈'
 }
 
 const menuDir = './media/menu'
@@ -65,7 +73,7 @@ const fetchBuffer = async (url) => {
 }
 
 // Imagen del menú
-const FOTO_URL = 'https://files.catbox.moe/orff5e.jpeg'
+const FOTO_URL = 'https://files.catbox.moe/4x1v0l.jpeg'
 let fotoBuffer = null
 try {
   fotoBuffer = await fetchBuffer(FOTO_URL)
@@ -134,7 +142,6 @@ let handler = async (m, { conn, usedPrefix }) => {
       totalCmds: totalComandos
     }
 
-    // ========== CONSTRUIR TEXTO DEL MENÚ ==========
     let menuText = menu.before
 
     for (const tag of Object.keys(tagsMap)) {
@@ -144,13 +151,12 @@ let handler = async (m, { conn, usedPrefix }) => {
         .join('\n')
       if (cmds) {
         const cmdCount = comandosPorTag.get(tag) || 0
-        menuText += `\n${menu.header.replace('%category', tagsMap[tag]).replace('%count', cmdCount)}\n${cmds}\n${menu.footer}`
+        menuText += `\n${menu.header.replace('%category', tagsMap[tag]).replace('%count', cmdCount)}\n${cmds}`
       }
     }
 
     menuText += `\n${menu.after}`
     
-    // Reemplazar variables
     for (const [key, value] of Object.entries(replace)) {
       menuText = menuText.replace(new RegExp(`%${key}`, 'g'), value)
     }
@@ -178,7 +184,7 @@ let handler = async (m, { conn, usedPrefix }) => {
   } catch (error) {
     console.error('Error en menu:', error)
     await conn.sendMessage(m.chat, { 
-      text: `—͟͟͞͞   *🜸 ʙᴀʟᴅᴡɪɴᴅ ɪᴠ  🛸  ᴄʏʙᴇʀ ᴄᴏʀᴇ  🜸* »\n> ⚠️ *Error al cargar el menú*\n> 📌 Usa *${usedPrefix}help* para ver comandos\n\n👑 *🜸 𝘿𝙀𝙑𝙇𝙔𝙊𝙉𝙉 🜸*` 
+      text: `◈────═══✧༺༻✧═══────◈\n     ⚠️ *Error al cargar el menú*\n     📌 Usa *${usedPrefix}help* para ver comandos\n     👑 *🜸 𝘿𝙀𝙑𝙇𝙔𝙊𝙉𝙉 🜸*\n◈────═══✧༺༻✧═══────◈` 
     }, { quoted: m })
   }
 }
@@ -195,4 +201,4 @@ const clockString = ms => {
   return [3600000, 60000, 1000].map((v, i) =>
     String(Math.floor(ms / v) % (i ? 60 : 99)).padStart(2, '0')
   ).join(':')
-      }
+}
