@@ -140,45 +140,86 @@ const connectionOptions = {
     version,
 }
 
+// ... todo el código anterior hasta connectionOptions ...
+
 global.conn = makeWASocket(connectionOptions)
 
-// ========== CÓDIGO DE 8 DÍGITOS (EL USUARIO PONE SU NÚMERO) ==========
-if (opcion === '2') {
-    if (!fs.existsSync(`./${global.sessions}/creds.json`)) {
-        if (!conn.authState.creds.registered) {
-            // El usuario ingresa SU número
+// ========== VARIABLE PARA CONTROLAR QUE NO SE PIDA MÚLTIPLES VECES ==========
+let pairingRequested = false
+
+// ========== EVENTO DE CONEXIÓN (AQUÍ SE PIDE EL CÓDIGO) ==========
+async function connectionUpdate(update) {
+    const { connection, lastDisconnect, isNewLogin, qr } = update
+    const reason = new Boom(lastDisconnect?.error)?.output?.statusCode
+    global.stopped = connection
+
+    // 👇 CLAVE: Pedir el código cuando la conexión está en 'connecting' o hay QR
+    if (opcion === '2' && (connection === 'connecting' || qr) && !pairingRequested && !global.conn.authState.creds.registered) {
+        pairingRequested = true
+        
+        // Esperar 3 segundos para asegurar la conexión [citation:2][citation:7]
+        await new Promise(resolve => setTimeout(resolve, 3000))
+        
+        try {
             let userNumber = await question(chalk.bgBlack(chalk.bold.greenBright(`✞ EL USUARIO ingresa su número SIN + (ej: 59177474230):\n🜸➤ `)))
             userNumber = userNumber.replace(/\D/g, '')
             rl.close()
             
-            console.log(chalk.yellow(`📱 Solicitando código para el número: ${userNumber}...`))
+            console.log(chalk.yellow(`📱 Solicitando código para: ${userNumber}...`))
             
-            setTimeout(async () => {
-                try {
-                    let codeBot = await conn.requestPairingCode(userNumber)
-                    let formattedCode = codeBot.match(/.{1,4}/g)?.join("-") || codeBot
-                    console.log(chalk.bold.white(chalk.bgMagenta(`🜸 CÓDIGO PARA ${userNumber}: ${formattedCode} 🜸`)))
-                    console.log(chalk.cyan(`📌 El USUARIO debe ingresar este código en: WhatsApp > Dispositivos vinculados`))
-                } catch (e) {
-                    console.log(chalk.red('❌ Error:', e.message))
-                }
-            }, 3000)
+            let codeBot = await global.conn.requestPairingCode(userNumber)
+            let formattedCode = codeBot.match(/.{1,4}/g)?.join("-") || codeBot
+            
+            console.log(chalk.bold.white(chalk.bgMagenta(`🜸 CÓDIGO: ${formattedCode} 🜸`)))
+            console.log(chalk.cyan(`📌 El USUARIO ingresa este código en: WhatsApp > Dispositivos vinculados`))
+        } catch (e) {
+            console.log(chalk.red('❌ Error:', e.message))
+            pairingRequested = false
+        }
+    }
+
+    if (isNewLogin) global.conn.isInit = true
+    if (!global.db.data) loadDatabase()
+
+    if ((qr && qr !== '0') && opcion === '1') {
+        console.log(chalk.bold.yellow(`\n❐ ESCANEA EL CÓDIGO QR - EXPIRA EN 45 SEGUNDOS`))
+    }
+
+    if (connection === 'open') {
+        console.log(chalk.bold.green('\n🜸 BALDWIND IV BOT CONECTADO 🛸'))
+    }
+
+    if (connection === 'close') {
+        switch (reason) {
+            case DisconnectReason.badSession:
+            case DisconnectReason.loggedOut:
+                console.log(chalk.bold.redBright(`\n⚠︎ SESIÓN INVÁLIDA, BORRA LA CARPETA ${global.sessions} Y REINICIA ⚠︎`))
+                break
+            case DisconnectReason.connectionClosed:
+            case DisconnectReason.connectionLost:
+            case DisconnectReason.timedOut:
+                console.log(chalk.bold.magentaBright(`\n⚠︎ CONEXIÓN PERDIDA, RECONECTANDO...`))
+                break
+            case DisconnectReason.connectionReplaced:
+                console.log(chalk.bold.yellowBright(`\n⚠︎ CONEXIÓN REEMPLAZADA`))
+                return
+            case DisconnectReason.restartRequired:
+                console.log(chalk.bold.cyanBright(`\n☑ REINICIANDO SESIÓN...`))
+                break
+            default:
+                console.log(chalk.bold.redBright(`\n⚠︎ DESCONEXIÓN DESCONOCIDA (${reason || 'Desconocido'})`))
+                break
+        }
+
+        if (global.conn?.ws?.socket === null) {
+            await global.reloadHandler(true).catch(console.error)
+            global.timestamp.connect = new Date()
         }
     }
 }
 
-conn.isInit = false
-conn.well = false
-conn.logger.info(` ✞ H E C H O\n`)
-
-if (!opts['test']) {
-    if (global.db) setInterval(async () => {
-        if (global.db.data) await global.db.write()
-        if (opts['autocleartmp'] && (global.support || {}).find) (tmp = [os.tmpdir(), 'tmp', `${jadi}`], tmp.forEach((filename) => cp.spawn('find', [filename, '-amin', '3', '-type', 'f', '-delete'])))
-    }, 30 * 1000)
-}
-
-async function connectionUpdate(update) {
+// Asignar el evento
+global.conn.ev.on('connection.update', connectionUpdate)
     const { connection, lastDisconnect, isNewLogin, qr } = update
     const reason = new Boom(lastDisconnect?.error)?.output?.statusCode
     global.stopped = connection
