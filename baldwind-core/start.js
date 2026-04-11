@@ -129,7 +129,7 @@ if (!methodCodeQR && !methodCode && (!credsExist || !modoGuardado)) {
     fs.writeFileSync(modoFile, opcion);
 } else if (modoGuardado) {
     opcion = modoGuardado;
-    console.log(chalk.bold.green(`✅ Usando modo guardado: ${opcion === '1' ? 'QR' : 'Código de 8 dígitos'}\n`));
+    console.log(chalk.bold.green(`✅ Usando modo guardado: ${opcion === '2' ? 'QR' : 'Código de 8 dígitos'}\n`));
 }
 
 console.info = () => {};
