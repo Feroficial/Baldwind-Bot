@@ -1,52 +1,71 @@
-// ⚔️ Código creado por 🜸 𝘿𝙀𝙑𝙇𝙔𝙊𝙉𝙉 🜸
-// 🛡️ BALDWIND IV - ACTUALIZAR REPOSITORIO
+// Código de WILKER OFC
 
-import { execSync } from 'child_process'
-import fs from 'fs'
-import path from 'path'
+import { execSync} from 'child_process';
 
-// ========== TU NÚMERO AQUÍ ==========
-const MI_NUMERO = '59177474230'
-
-let handler = async (m, { conn, args, usedPrefix, command }) => {
-  // Verificación directa con tu número
-  const senderNumber = m.sender.split('@')[0]
-  
-  if (senderNumber !== MI_NUMERO) {
-    return conn.reply(m.chat, `—͟͟͞͞   *🜸 ʙᴀʟᴅᴡɪɴᴅ ɪᴠ  🛸  ᴄʏʙᴇʀ ᴄᴏʀᴇ  🜸* »\n> ⚙️🔒 *MÓDULO BLOQUEADO*\n\n> 🛡️ *Acceso denegado*\n> 📌 Esta función es exclusiva para *🜸 𝘋𝙀𝙑𝙇𝙔𝙊𝙉𝙉 🜸*\n\n👑 *BALDWIND IV*`, m)
-  }
-
-  await conn.reply(m.chat, '—͟͟͞͞   *🜸 ʙᴀʟᴅᴡɪɴᴅ ɪᴠ  🛸  ᴄʏʙᴇʀ ᴄᴏʀᴇ  🜸* »\n> ⏳ *Actualizando el bot...*', m)
-
+const handler = async (m, { conn, args}) => {
   try {
-    // Método 1: Intentar git pull normal
+    await conn.reply(m.chat, '⏳ *_Actualizando el bot... Por favor espera._*', m);
+
+    const output = execSync('git pull' + (args.length? ' ' + args.join(' '): '')).toString();
+    const isUpdated = output.includes('Already up to date');
+
+    const updateMsg = isUpdated
+? '✅ *Balwind Bot ya está actualizado.*'
+: `✅ *Actualización aplicada correctamente:*\n\n${output}`;
+
+    await conn.reply(m.chat, updateMsg, m);
+
+} catch (error) {
+    let conflictMsg = '❌ *Error al actualizar el bot.*';
+
     try {
-      const output = execSync('git pull', { encoding: 'utf-8' })
-      await conn.reply(m.chat, `—͟͟͞͞   *🜸 ʙᴀʟᴅᴡɪɴᴅ ɪᴠ  🛸  ᴄʏʙᴇʀ ᴄᴏʀᴇ  🜸* »\n> ✅ *Actualización completada:*\n\n📦 \`${output.trim()}\`\n\n👑 *🜸 𝘋𝙀𝙑𝙇𝙔𝙊𝙉𝙉 🜸*`, m)
-      return
-    } catch (gitError) {
-      // Si hay conflicto, forzar reset
-      if (gitError.message.includes('Your local changes')) {
-        await conn.reply(m.chat, '—͟͟͞͞   *🜸 ʙᴀʟᴅᴡɪɴᴅ ɪᴠ  🛸  ᴄʏʙᴇʀ ᴄᴏʀᴇ  🜸* »\n> ⚠️ *Conflictos detectados, forzando actualización...*', m)
-        
-        // Forzar reset del config.js
-        execSync('git checkout -- núcleo•clover/config.js', { stdio: 'pipe' })
-        execSync('git pull', { stdio: 'pipe' })
-        
-        await conn.reply(m.chat, `—͟͟͞͞   *🜸 ʙᴀʟᴅᴡɪɴᴅ ɪᴠ  🛸  ᴄʏʙᴇʀ ᴄᴏʀᴇ  🜸* »\n> ✅ *Actualización forzada completada*\n> 📌 Reinicia el bot para aplicar cambios.\n\n👑 *🜸 𝘋𝙀𝙑𝙇𝙔𝙊𝙉𝙉 🜸*`, m)
-        return
-      }
-      throw gitError
-    }
-  } catch (error) {
-    // Mensaje de error simple
-    await conn.reply(m.chat, `—͟͟͞͞   *🜸 ʙᴀʟᴅᴡɪɴᴅ ɪᴠ  🛸  ᴄʏʙᴇʀ ᴄᴏʀᴇ  🜸* »\n> ❌ *Error al actualizar:*\n> ${error.message.split('\n')[0]}\n\n📌 *Solución manual:*\n1. Borra la carpeta del bot\n2. Clona de nuevo el repositorio\n3. Restaura database.json y sesión\n\n👑 *🜸 𝘋𝙀𝙑𝙇𝙔𝙊𝙉𝙉 🜸*`, m)
-  }
+      const status = execSync('git status --porcelain').toString().trim();
+
+      if (status) {
+        const conflictedFiles = status
+.split('\n')
+.map(line => line.slice(3))
+.filter(file =>
+!file.startsWith('.npm/') &&
+!file.startsWith('Sessions/Principal/') &&
+!file.startsWith('node_modules/') &&
+!file.startsWith('package-lock.json') &&
+!file.startsWith('database.json') &&
+!file.startsWith('.cache/') &&
+!file.startsWith('tmp/')
+);
+
+        if (conflictedFiles.length> 0) {
+          conflictMsg = `⚠️ *Conflictos detectados en los siguientes archivos:*\n\n` +
+            conflictedFiles.map(f => `• ${f}`).join('\n') +
+            `\n\n🔧 *Solución recomendada:* reinstala el bot o resuelve los conflictos manualmente.`;
+}
+}
+} catch (statusError) {
+      console.error('Error al verificar conflictos:', statusError);
 }
 
-handler.help = ['fix', 'update', 'actualizar']
-handler.tags = ['owner']
-handler.command = ['fix', 'update', 'actualizar']
-handler.rowner = false
+    await conn.reply(m.chat, conflictMsg, m);
+}
+};
 
-export default handler
+const keywords = ['update', 'up', 'fix'];
+
+handler.help = ['update'];
+handler.tags = ['owner'];
+handler.command = ['update', 'up', 'fix'];
+handler.rowner = true;
+
+handler.all = async function (m) {
+  if (!m.text || typeof m.text!== 'string') return;
+
+  const input = m.text.trim().toLowerCase();
+
+  for (const keyword of keywords) {
+    if (input === keyword) {
+      return handler(m, { conn: this, args: []});
+}
+}
+};
+
+export default handler;
