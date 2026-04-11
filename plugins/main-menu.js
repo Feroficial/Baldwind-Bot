@@ -56,29 +56,13 @@ const loadMenuMedia = jid => {
 }
 
 const fetchBuffer = async (url) => {
-  try {
-    const res = await fetch(url)
-    return Buffer.from(await res.arrayBuffer())
-  } catch (e) {
-    console.log('Error cargando imagen:', e.message)
-    return null
-  }
+  const res = await fetch(url)
+  return Buffer.from(await res.arrayBuffer())
 }
 
-// ========== IMAGEN DE CATBOX ==========
+// ========== IMAGEN DE CATBOX (DIRECTA) ==========
 const FOTO_URL = 'https://files.catbox.moe/4x1v0l.jpeg'
-let fotoBuffer = null
-
-try {
-  fotoBuffer = await fetchBuffer(FOTO_URL)
-  if (fotoBuffer) {
-    console.log('✅ Imagen del menú cargada correctamente')
-  } else {
-    console.log('⚠️ No se pudo cargar la imagen')
-  }
-} catch (e) {
-  console.log('Error:', e.message)
-}
+let fotoBuffer = await fetchBuffer(FOTO_URL)
 
 let handler = async (m, { conn, usedPrefix }) => {
   try {
@@ -162,8 +146,8 @@ let handler = async (m, { conn, usedPrefix }) => {
       menuText = menuText.replace(new RegExp(`%${key}`, 'g'), value)
     }
 
-    // Opciones del mensaje CON imagen
-    const messageOptions = {
+    // ========== ENVIAR CON IMAGEN (thumbnail NO es null) ==========
+    await conn.sendMessage(m.chat, {
       text: menuText,
       footer: '🧠 ʙᴀʟᴅᴡɪɴᴅ ɪᴠ • ᴄʏʙᴇʀ ꜱʏꜱᴛᴇᴍ ☘️',
       buttons: [
@@ -179,13 +163,10 @@ let handler = async (m, { conn, usedPrefix }) => {
           renderLargerThumbnail: true
         }
       }
-    }
-
-    await conn.sendMessage(m.chat, messageOptions, { quoted: m })
+    }, { quoted: m })
 
   } catch (error) {
     console.error('Error en menu:', error)
-    // Mensaje de respaldo sin imagen
     await conn.sendMessage(m.chat, { 
       text: `—͟͟͞͞   *🜸 ʙᴀʟᴅᴡɪɴᴅ ɪᴠ  🛸  ᴄʏʙᴇʀ ᴄᴏʀᴇ  🜸* »\n> ⚠️ *Error al cargar el menú*\n> 📌 Usa *${usedPrefix}help* para ver comandos\n\n👑 *🜸 𝘿𝙀𝙑𝙇𝙔𝙊𝙉𝙉 🜸*` 
     }, { quoted: m })
