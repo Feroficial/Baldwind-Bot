@@ -10,22 +10,16 @@ import moment from 'moment-timezone';
 //*─✞─ CONFIGURACIÓN GLOBAL ─✞─*
 
 // Número del bot
-global.botNumber = '59177474230';
+global.botNumber = '';
 
 //*─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─*
-// ========== DETECCIÓN MÚLTIPLE DEL CREADOR ==========
 global.owner = [
-  ['59177474230', '🜸 𝘿𝙀𝙑𝙇𝙔𝙊𝙉𝙉 🜸', true],
-  ['59177474230', 'DEVLYONN', true],
-  ['59177474230', 'DevLyonn', true],
-  ['59177474230'],
-  ['59177474230@s.whatsapp.net', 'DEVLYONN', true],
-  ['59177474230@c.us', 'DEVLYONN', true]
+  ['59177474230', '🜸 𝘿𝙀𝙑𝙇𝙔𝙊𝙉𝙉 🜸', true]
 ];
 
-global.mods = ['59177474230', '59177474230@s.whatsapp.net'];
+global.mods = ['59177474230'];
 global.suittag = ['59177474230'];
-global.prems = ['59177474230', '59177474230@s.whatsapp.net'];
+global.prems = ['59177474230'];
 
 //*─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─*
 global.libreria = 'Baileys';
@@ -39,13 +33,9 @@ global.jadi = 'baldwindJadiBot';
 global.blackJadibts = true;
 
 //*─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─*
-global.packsticker = `
-  🜸 BALDWIND IV 🛸 ᚲ DEVLYONN`;
-
+global.packsticker = '🜸 BALDWIND IV 🛸 ᚲ DEVLYONN';
 global.packname = '🜸 BALDWIND IV 🛸';
-
-global.author = `
-♾━━━━━━━━━━━━━━━♾`;
+global.author = '♾━━━━━━━━━━━━━━━♾';
 
 //*─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─*
 global.wm = '🜸 BALDWIND IV 🛸';
@@ -57,7 +47,6 @@ global.textbot = '🜸 BALDWIND IV : DEVLYONN';
 global.gt = '͟͞🜸 BALDWIND IV 🛸͟͞';
 global.namechannel = '🜸 BALDWIND IV / DEVLYONN';
 
-// Moneda interna
 global.monedas = 'monedas';
 
 //*─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─*
