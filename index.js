@@ -134,7 +134,10 @@ let isRunning = false
 function start(file) {
   if (isRunning) return
   isRunning = true
-  let args = [join(__dirname, 'núcleo•clover', file), ...process.argv.slice(2)]
+  
+  // ========== CAMBIADO: núcleo•clover → baldwind-core ==========
+  let args = [join(__dirname, 'baldwind-core', file), ...process.argv.slice(2)]
+  
   setupMaster({ exec: args[0], args: args.slice(1) })
   let p = fork()
   p.on('exit', (_, code) => {
