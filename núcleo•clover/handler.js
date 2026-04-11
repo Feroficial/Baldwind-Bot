@@ -131,58 +131,61 @@ export async function handler(chatUpdate) {
     } catch (err) {
       console.error('Error en welcome/goodbye:', err)
     }
+// ========== PROCESAR COMANDOS (SIN PREFIJO) ==========
+m.exp += Math.ceil(Math.random() * 10);
+let usedPrefix;
+let _user = global.db.data.users[m.sender];
 
-    // ========== PROCESAR COMANDOS ==========
-    m.exp += Math.ceil(Math.random() * 10);
-    let usedPrefix;
-    let _user = global.db.data.users[m.sender];
+// Definir prefijo vacío (acepta cualquier texto como comando)
+global.prefix = /^/;
 
-    const ___dirname = path.join(path.dirname(fileURLToPath(import.meta.url)), './plugins');
-    for (let name in global.plugins) {
-      let plugin = global.plugins[name];
-      if (!plugin || plugin.disabled) continue;
-      const __filename = join(___dirname, name);
+const ___dirname = path.join(path.dirname(fileURLToPath(import.meta.url)), './plugins');
+for (let name in global.plugins) {
+  let plugin = global.plugins[name];
+  if (!plugin || plugin.disabled) continue;
+  const __filename = join(___dirname, name);
 
-      if (typeof plugin.all === 'function') await plugin.all.call(this, m, { chatUpdate, __dirname: ___dirname, __filename }).catch(console.error);
+  if (typeof plugin.all === 'function') await plugin.all.call(this, m, { chatUpdate, __dirname: ___dirname, __filename }).catch(console.error);
 
-      const str2Regex = str => str.replace(/[|\\{}()[\]^$+*?.]/g, '\\$&');
-      let _prefix = plugin.customPrefix || this.prefix || global.prefix;
-      let match = (_prefix instanceof RegExp ? [[_prefix.exec(m.text), _prefix]] :
-        Array.isArray(_prefix) ? _prefix.map(p => [p instanceof RegExp ? p.exec(m.text) : new RegExp(str2Regex(p)).exec(m.text), p instanceof RegExp ? p : new RegExp(str2Regex(p))]) :
-        [[new RegExp(str2Regex(_prefix)).exec(m.text), new RegExp(str2Regex(_prefix))]]
-      ).find(p => p[1]);
+  const str2Regex = str => str.replace(/[|\\{}()[\]^$+*?.]/g, '\\$&');
+  let _prefix = plugin.customPrefix || this.prefix || global.prefix;
+  let match = (_prefix instanceof RegExp ? [[_prefix.exec(m.text), _prefix]] :
+    Array.isArray(_prefix) ? _prefix.map(p => [p instanceof RegExp ? p.exec(m.text) : new RegExp(str2Regex(p)).exec(m.text), p instanceof RegExp ? p : new RegExp(str2Regex(p))]) :
+    [[new RegExp(str2Regex(_prefix)).exec(m.text), new RegExp(str2Regex(_prefix))]]
+  ).find(p => p[1]);
 
-      if (typeof plugin.before === 'function' && await plugin.before.call(this, m, { match, conn: this, chatUpdate, __dirname: ___dirname, __filename })) continue;
-      if (typeof plugin !== 'function') continue;
+  if (typeof plugin.before === 'function' && await plugin.before.call(this, m, { match, conn: this, chatUpdate, __dirname: ___dirname, __filename })) continue;
+  if (typeof plugin !== 'function') continue;
 
-      if ((usedPrefix = (match[0] || '')[0])) {
-        let noPrefix = m.text.replace(usedPrefix, '');
-        let [command, ...args] = noPrefix.trim().split` `.filter(Boolean);
-        args = args || [];
-        let _args = noPrefix.trim().split` `.slice(1);
-        let text = _args.join` `;
-        command = (command || '').toLowerCase();
-        let isAccept = plugin.command instanceof RegExp ? plugin.command.test(command) :
-          Array.isArray(plugin.command) ? plugin.command.some(cmd => cmd instanceof RegExp ? cmd.test(command) : cmd === command) :
-          plugin.command === command;
+  if ((usedPrefix = (match[0] || '')[0]) || true) { // <-- MODIFICADO: siempre entra
+    let noPrefix = m.text;
+    let [command, ...args] = noPrefix.trim().split` `.filter(Boolean);
+    args = args || [];
+    let _args = noPrefix.trim().split` `.slice(1);
+    let text = _args.join` `;
+    command = (command || '').toLowerCase();
+    let isAccept = plugin.command instanceof RegExp ? plugin.command.test(command) :
+      Array.isArray(plugin.command) ? plugin.command.some(cmd => cmd instanceof RegExp ? cmd.test(command) : cmd === command) :
+      plugin.command === command;
 
-        if (!isAccept) continue;
-        if (plugin.register && !_user.registered) {
-          m.reply(`—͟͟͞͞   *🜸 ʙᴀʟᴅᴡɪɴᴅ ɪᴠ  🛸  ᴄʏʙᴇʀ ᴄᴏʀᴇ  🜸* »\n> 📜 *NO REGISTRADO*\n\n> 📌 Usa *#registrar Nombre.Edad*\n> 🎯 *Ejemplo:* #registrar Lyonn.17\n\n👑 *🜸 𝘿𝙀𝙑𝙇𝙔𝙊𝙉𝙉 🜸*`);
-          continue;
-        }
-
-        m.isCommand = true;
-        let extra = { match, usedPrefix, noPrefix, _args, args, command, text, conn: this, chatUpdate, __dirname: ___dirname, __filename };
-        try {
-          await plugin.call(this, m, extra);
-        } catch (e) {
-          m.error = e;
-          m.reply(format(e));
-        }
-        break;
-      }
+    if (!isAccept) continue;
+    if (plugin.register && !_user.registered) {
+      m.reply(`—͟͟͞͞   *🜸 ʙᴀʟᴅᴡɪɴᴅ ɪᴠ  🛸  ᴄʏʙᴇʀ ᴄᴏʀᴇ  🜸* »\n> 📜 *NO REGISTRADO*\n\n> 📌 Usa *#registrar Nombre.Edad*\n> 🎯 *Ejemplo:* #registrar Lyonn.17\n\n👑 *🜸 𝘿𝙀𝙑𝙇𝙔𝙊𝙉𝙉 🜸*`);
+      continue;
     }
+
+    m.isCommand = true;
+    let extra = { match, usedPrefix, noPrefix, _args, args, command, text, conn: this, chatUpdate, __dirname: ___dirname, __filename };
+    try {
+      await plugin.call(this, m, extra);
+    } catch (e) {
+      m.error = e;
+      m.reply(format(e));
+    }
+    break;
+  }
+}
+
 
   } catch (e) { console.error(e); } finally {
     if (m && global.db.data.users[m.sender]) {
