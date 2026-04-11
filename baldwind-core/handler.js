@@ -37,6 +37,11 @@ export async function handler(chatUpdate) {
     m.exp = 0;
     m.monedas = false;
 
+    // ========== DEPURACIÓN: VER NÚMERO DETECTADO ==========
+    console.log('📱 Mi número detectado:', m.sender)
+    console.log('👑 Owners configurados:', global.owner ? global.owner.map(o => o[0]) : 'No hay owners')
+    // =====================================================
+
     // ========== INICIALIZAR DATOS DEL USUARIO ==========
     try {
       let user = global.db.data.users[m.sender];
