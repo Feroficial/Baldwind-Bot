@@ -32,11 +32,7 @@ let handler = async (m, { conn, usedPrefix, command, isAdmin, isBotAdmin }) => {
     confirmMsg += `👑 *🜸 𝘿𝙀𝙑𝙇𝙔𝙊𝙉𝙉 🜸*\n`
     confirmMsg += `⌬ ʙᴀʟᴅᴡɪɴᴅ ɪᴠ ᴄʏʙᴇʀ ᴍᴇɴᴜ 🧬`
     
-    const sent = await conn.sendMessage(m.chat, { text: confirmMsg, mentions: [m.sender] })
-    
-    setTimeout(async () => {
-      await conn.sendMessage(m.chat, { delete: sent.key })
-    }, 5000)
+    await conn.sendMessage(m.chat, { text: confirmMsg, mentions: [m.sender] })
     
   } catch (error) {
     console.error('Error:', error)
@@ -51,4 +47,4 @@ handler.group = true
 handler.admin = true
 handler.botAdmin = true
 
-export default handler
+export dafault handler 
