@@ -53,7 +53,7 @@ const keywords = ['update', 'up', 'fix'];
 
 handler.help = ['fex update'];
 handler.tags = ['owner'];
-handler.command = ['update', 'iv', 'fix', 'fex update'];
+handler.command = ['update', 'iv', 'fix', 'fexupdate'];
 handler.rowner = true;
 
 handler.all = async function (m) {
