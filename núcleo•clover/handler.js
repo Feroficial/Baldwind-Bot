@@ -165,73 +165,72 @@ export async function handler(chatUpdate) {
     const isAdmin = isRAdmin || user.admin === 'admin';
     const isBotAdmin = !!bot.admin;
 
-    // ========== BIENVENIDA AUTOMÁTICA ==========
-    try {
-      if (m.messageStubType === 1) {
-        const groupMetadata = await this.groupMetadata(m.chat);
-        const participants = m.messageStubParameters;
-        
-        for (let participant of participants) {
-          const userName = await this.getName(participant).catch(() => 'Guerrero Anónimo');
-          const userNumber = participant.split('@')[0];
-          const totalMembers = groupMetadata.participants.length;
-          
-          let welcomeText = `—͟͟͞͞   *🜸 ʙᴀʟᴅᴡɪɴᴅ ɪᴠ  🛸  ᴄʏʙᴇʀ ᴄᴏʀᴇ  🜸* »\n`;
-          welcomeText += `> 🌿 *BIENVENIDO AL REINO* 🌿\n`;
-          welcomeText += `> ⚔️ @${userNumber}\n`;
-          welcomeText += `> 📛 *Nombre:* ${userName}\n`;
-          welcomeText += `> 👥 *Miembros:* ${totalMembers}\n\n`;
-          welcomeText += `✦ 𝗥𝗘𝗚𝗟𝗔𝗦 𝗗𝗘𝗟 𝗥𝗘𝗜𝗡𝗢 ✦\n`;
-          welcomeText += `> 1️⃣ Respeta a todos los guerreros\n`;
-          welcomeText += `> 2️⃣ No enviar spam ni enlaces maliciosos\n`;
-          welcomeText += `> 3️⃣ Prohibido el contenido +18\n`;
-          welcomeText += `> 4️⃣ Usa los comandos con responsabilidad\n\n`;
-          welcomeText += `✦ 𝗖𝗢𝗠𝗔𝗡𝗗𝗢𝗦 𝗗𝗜𝗦𝗣𝗢𝗡𝗜𝗕𝗟𝗘𝗦 ✦\n`;
-          welcomeText += `> 🔖 *${usedPrefix || '#'}menu* - Ver menú principal\n`;
-          welcomeText += `> 🔖 *${usedPrefix || '#'}perfil* - Ver tu grimorio\n`;
-          welcomeText += `> 🔖 *${usedPrefix || '#'}daily* - Recompensa diaria\n`;
-          welcomeText += `> 🔖 *${usedPrefix || '#'}work* - Trabajar y ganar monedas\n\n`;
-          welcomeText += `⧼⋆꙳•〔 🛸 𝗕𝗔𝗟𝗗𝗪𝗜𝗡𝗗 𝗜𝗩 〕⋆꙳•⧽\n`;
-          welcomeText += `> 👑 *🜸 𝘿𝙀𝙑𝙇𝙔𝙊𝙉𝙉 🜸*\n`;
-          welcomeText += `╰⋆꙳•❅‧*₊⋆꙳︎‧*❆₊⋆╯\n`;
-          welcomeText += `⌬ ʙᴀʟᴅᴡɪɴᴅ ɪᴠ ᴄʏʙᴇʀ ᴍᴇɴᴜ 🧬`;
-          
-          if (global.db.data.users[participant]) {
-            global.db.data.users[participant].monedas = (global.db.data.users[participant].monedas || 0) + 100;
-            await global.db.write();
-          }
-          
-          await this.sendMessage(m.chat, { text: welcomeText, mentions: [participant] });
-        }
-      }
+    // ========== BIENVENIDA Y DESPEDIDA CORREGIDO ==========
+try {
+  // Verificar que exista el evento y que sea en un grupo
+  if (m.messageStubType && m.isGroup) {
+    
+    // DETECTAR CUANDO ALGUIEN ENTRA AL GRUPO (stubType = 1)
+    if (m.messageStubType === 1) {
+      const participants = m.messageStubParameters || []
+      if (participants.length === 0) return
       
-      // ========== DESPEDIDA AUTOMÁTICA ==========
-      if (m.messageStubType === 2) {
-        const groupMetadata = await this.groupMetadata(m.chat);
-        const participants = m.messageStubParameters;
+      const groupMetadata = await this.groupMetadata(m.chat).catch(() => null)
+      if (!groupMetadata) return
+      
+      for (let participant of participants) {
+        const userName = await this.getName(participant).catch(() => 'Guerrero')
+        const userNumber = participant.split('@')[0]
+        const totalMembers = groupMetadata.participants.length
         
-        for (let participant of participants) {
-          const userName = await this.getName(participant).catch(() => 'Guerrero Anónimo');
-          const userNumber = participant.split('@')[0];
-          const totalMembers = groupMetadata.participants.length;
-          
-          let goodbyeText = `—͟͟͞͞   *🜸 ʙᴀʟᴅᴡɪɴᴅ ɪᴠ  🛸  ᴄʏʙᴇʀ ᴄᴏʀᴇ  🜸* »\n`;
-          goodbyeText += `> 🕯️ *UN GUERRERO HA PARTIDO* 🕯️\n`;
-          goodbyeText += `> ⚔️ @${userNumber}\n`;
-          goodbyeText += `> 📛 *Nombre:* ${userName}\n`;
-          goodbyeText += `> 👥 *Miembros restantes:* ${totalMembers}\n\n`;
-          goodbyeText += `> 🌿 *Que el maná te guíe en tu camino...*\n\n`;
-          goodbyeText += `⧼⋆꙳•〔 🛸 𝗕𝗔𝗟𝗗𝗪𝗜𝗡𝗗 𝗜𝗩 〕⋆꙳•⧽\n`;
-          goodbyeText += `> 👑 *🜸 𝘿𝙀𝙑𝙇𝙔𝙊𝙉𝙉 🜸*\n`;
-          goodbyeText += `╰⋆꙳•❅‧*₊⋆꙳︎‧*❆₊⋆╯\n`;
-          goodbyeText += `⌬ ʙᴀʟᴅᴡɪɴᴅ ɪᴠ ᴄʏʙᴇʀ ᴍᴇɴᴜ 🧬`;
-          
-          await this.sendMessage(m.chat, { text: goodbyeText, mentions: [participant] });
-        }
+        let welcomeText = `—͟͟͞͞   *🜸 ʙᴀʟᴅᴡɪɴᴅ ɪᴠ  🛸  ᴄʏʙᴇʀ ᴄᴏʀᴇ  🜸* »\n`
+        welcomeText += `> 🌿 *BIENVENIDO AL REINO* 🌿\n`
+        welcomeText += `> ⚔️ @${userNumber}\n`
+        welcomeText += `> 📛 *Nombre:* ${userName}\n`
+        welcomeText += `> 👥 *Miembros:* ${totalMembers}\n\n`
+        welcomeText += `✦ 𝗥𝗘𝗚𝗟𝗔𝗦 𝗗𝗘𝗟 𝗥𝗘𝗜𝗡𝗢 ✦\n`
+        welcomeText += `> 1️⃣ Respeta a todos\n`
+        welcomeText += `> 2️⃣ No enviar spam\n`
+        welcomeText += `> 3️⃣ Prohibido +18\n\n`
+        welcomeText += `✦ 𝗖𝗢𝗠𝗔𝗡𝗗𝗢𝗦 ✦\n`
+        welcomeText += `> 🔖 #menu - Ver menú\n`
+        welcomeText += `> 🔖 #perfil - Ver stats\n`
+        welcomeText += `> 🔖 #daily - Recompensa diaria\n\n`
+        welcomeText += `⧼⋆꙳•〔 🛸 𝗕𝗔𝗟𝗗𝗪𝗜𝗡𝗗 𝗜𝗩 〕⋆꙳•⧽\n`
+        welcomeText += `> 👑 *🜸 𝘿𝙀𝙑𝙇𝙔𝙊𝙉𝙉 🜸*\n`
+        welcomeText += `╰⋆꙳•❅‧*₊⋆꙳︎‧*❆₊⋆╯\n`
+        welcomeText += `⌬ ʙᴀʟᴅᴡɪɴᴅ ɪᴠ ᴄʏʙᴇʀ ᴍᴇɴᴜ 🧬`
+        
+        await this.sendMessage(m.chat, { text: welcomeText, mentions: [participant] })
       }
-    } catch (err) {
-      console.error('Error en bienvenida/despedida:', err);
     }
+    
+    // DETECTAR CUANDO ALGUIEN SALE DEL GRUPO (stubType = 2)
+    if (m.messageStubType === 2) {
+      const participants = m.messageStubParameters || []
+      if (participants.length === 0) return
+      
+      const groupMetadata = await this.groupMetadata(m.chat).catch(() => null)
+      if (!groupMetadata) return
+      
+      for (let participant of participants) {
+        const userName = await this.getName(participant).catch(() => 'Guerrero')
+        const userNumber = participant.split('@')[0]
+        
+        let goodbyeText = `—͟͟͞͞   *🜸 ʙᴀʟᴅᴡɪɴᴅ ɪᴠ  🛸  ᴄʏʙᴇʀ ᴄᴏʀᴇ  🜸* »\n`
+        goodbyeText += `> 🕯️ *UN GUERRERO HA PARTIDO* 🕯️\n`
+        goodbyeText += `> ⚔️ @${userNumber}\n`
+        goodbyeText += `> 📛 *Nombre:* ${userName}\n\n`
+        goodbyeText += `> 🌿 *Que el maná te guíe en tu camino...*\n\n`
+        goodbyeText += `⌬ ʙᴀʟᴅᴡɪɴᴅ ɪᴠ ᴄʏʙᴇʀ ᴍᴇɴᴜ 🧬`
+        
+        await this.sendMessage(m.chat, { text: goodbyeText, mentions: [participant] })
+      }
+    }
+  }
+} catch (err) {
+  console.error('Error en welcome/goodbye:', err)
+}
 
     // ========== PROCESAR PLUGINS ==========
     const ___dirname = path.join(path.dirname(fileURLToPath(import.meta.url)), './plugins');
