@@ -173,9 +173,10 @@ export async function handler(chatUpdate) {
     const isAdmin = isRAdmin || user.admin === 'admin';
     const isBotAdmin = !!bot.admin;
 
-    // ========== SISTEMA ANTILINK ==========
+    // ========== SISTEMA ANTILINK (CORREGIDO) ==========
     if (m.isGroup && m.text && !m.isBaileys) {
       const chat = global.db.data.chats[m.chat];
+      
       if (chat && chat.antiLink === true) {
         const linksProhibidos = [
           'chat.whatsapp.com', 'whatsapp.com/channel', 'instagram.com', 'facebook.com',
@@ -194,14 +195,19 @@ export async function handler(chatUpdate) {
           }
         }
         
-        if (tieneLink && !isAdmin && !isOwner && !isROwner) {
-          const isBotAdmin = groupMetadata?.participants?.some(p => p.id === botJid && p.admin) || false
+        if (tieneLink && !isAdmin && !isRAdmin && !isOwner && !isROwner) {
+          const isBotAdminGroup = groupMetadata?.participants?.some(p => p.id === botJid && p.admin) || false
           
-          if (isBotAdmin) {
+          if (isBotAdminGroup) {
             await this.sendMessage(m.chat, { delete: m.key }).catch(() => {})
             await this.groupParticipantsUpdate(m.chat, [m.sender], 'remove').catch(() => {})
             await this.sendMessage(m.chat, {
               text: `—͟͟͞͞   *🜸 ʙᴀʟᴅᴡɪɴᴅ ɪᴠ  🛸  ᴄʏʙᴇʀ ᴄᴏʀᴇ  🜸* »\n> 🚫 *ANTILINK ACTIVADO* 🚫\n\n> 👤 *Usuario:* @${m.sender.split('@')[0]}\n> 🔗 *Enlace detectado:* ${linkEncontrado}\n> ⚔️ *Expulsado automáticamente*\n\n👑 *🜸 𝘿𝙀𝙑𝙇𝙔𝙊𝙉𝙉 🜸*`,
+              mentions: [m.sender]
+            }).catch(() => {})
+          } else {
+            await this.sendMessage(m.chat, {
+              text: `—͟͟͞͞   *🜸 ʙᴀʟᴅᴡɪɴᴅ ɪᴠ  🛸  ᴄʏʙᴇʀ ᴄᴏʀᴇ  🜸* »\n> ⚠️ *ANTILINK ACTIVADO* ⚠️\n\n> 👤 @${m.sender.split('@')[0]}\n> 🔗 *Enlace detectado:* ${linkEncontrado}\n> 📌 *El bot necesita ser administrador para expulsar*\n\n👑 *🜸 𝘿𝙀𝙑𝙇𝙔𝙊𝙉𝙉 🜸*`,
               mentions: [m.sender]
             }).catch(() => {})
           }
