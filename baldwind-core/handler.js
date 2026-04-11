@@ -88,28 +88,26 @@ export async function handler(chatUpdate) {
         clanRank: user.clanRank || null
       });
 
-      let chat = global.db.data.chats[m.chat];
-      if (!chat || typeof chat !== 'object') global.db.data.chats[m.chat] = chat = {};
       Object.assign(chat, {
-        isBanned: 'isBanned' in chat ? chat.isBanned : false,
-        sAutoresponder: chat.sAutoresponder || '',
-        welcome: 'welcome' in chat ? chat.welcome : true,
-        autolevelup: 'autolevelup' in chat ? chat.autolevelup : false,
-        autoAceptar: 'autoAceptar' in chat ? chat.autoAceptar : true,
-        autosticker: 'autosticker' in chat ? chat.autosticker : false,
-        autoRechazar: 'autoRechazar' in chat ? chat.autoRechazar : true,
-        autoresponder: 'autoresponder' in chat ? chat.autoresponder : false,
-        detect: 'detect' in chat ? chat.detect : true,
-        antiBot: 'antiBot' in chat ? chat.antiBot : true,
-        antiBot2: 'antiBot2' in chat ? chat.antiBot2 : true,
-        modoadmin: 'modoadmin' in chat ? chat.modoadmin : false,
-        antiLink: 'antiLink' in chat ? chat.antiLink || false,
-        reaction: 'reaction' in chat ? chat.reaction : false,
-        nsfw: 'nsfw' in chat ? chat.nsfw : false,
-        antifake: 'antifake' in chat ? chat.antifake : false,
-        delete: 'delete' in chat ? chat.delete : false,
-        expired: isNumber(chat.expired) ? chat.expired : 0
-      });
+    isBanned: 'isBanned' in chat ? chat.isBanned : false,
+    sAutoresponder: chat.sAutoresponder || '',
+    welcome: 'welcome' in chat ? chat.welcome : true,
+    autolevelup: 'autolevelup' in chat ? chat.autolevelup : false,
+    autoAceptar: 'autoAceptar' in chat ? chat.autoAceptar : true,
+    autosticker: 'autosticker' in chat ? chat.autosticker : false,
+    autoRechazar: 'autoRechazar' in chat ? chat.autoRechazar : true,
+    autoresponder: 'autoresponder' in chat ? chat.autoresponder : false,
+    detect: 'detect' in chat ? chat.detect : true,
+    antiBot: 'antiBot' in chat ? chat.antiBot : true,
+    antiBot2: 'antiBot2' in chat ? chat.antiBot2 : true,
+    modoadmin: 'modoadmin' in chat ? chat.modoadmin : false,
+    antiLink: 'antiLink' in chat ? chat.antiLink : false,  // ✅ CORREGIDO
+    reaction: 'reaction' in chat ? chat.reaction : false,
+    nsfw: 'nsfw' in chat ? chat.nsfw : false,
+    antifake: 'antifake' in chat ? chat.antifake : false,
+    delete: 'delete' in chat ? chat.delete : false,
+    expired: isNumber(chat.expired) ? chat.expired : 0
+});
 
       var settings = global.db.data.settings[this.user.jid] || {};
       Object.assign(settings, {
