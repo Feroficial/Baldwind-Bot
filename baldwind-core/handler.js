@@ -37,11 +37,6 @@ export async function handler(chatUpdate) {
     m.exp = 0;
     m.monedas = false;
 
-    // ========== DEPURACIÓN: VER NÚMERO DETECTADO ==========
-    console.log('📱 Mi número detectado:', m.sender)
-    console.log('👑 Owners configurados:', global.owner ? global.owner.map(o => o[0]) : 'No hay owners')
-    // =====================================================
-
     // ========== INICIALIZAR DATOS DEL USUARIO ==========
     try {
       let user = global.db.data.users[m.sender];
@@ -108,7 +103,7 @@ export async function handler(chatUpdate) {
         antiBot: 'antiBot' in chat ? chat.antiBot : true,
         antiBot2: 'antiBot2' in chat ? chat.antiBot2 : true,
         modoadmin: 'modoadmin' in chat ? chat.modoadmin : false,
-        antiLink: 'antiLink' in chat ? chat.antiLink : true,
+        antiLink: 'antiLink' in chat ? chat.antiLink || false,
         reaction: 'reaction' in chat ? chat.reaction : false,
         nsfw: 'nsfw' in chat ? chat.nsfw : false,
         antifake: 'antifake' in chat ? chat.antifake : false,
@@ -169,6 +164,65 @@ export async function handler(chatUpdate) {
     const isRAdmin = user.admin === 'superadmin';
     const isAdmin = isRAdmin || user.admin === 'admin';
     const isBotAdmin = !!bot.admin;
+
+    // ========== SISTEMA ANTILINK ==========
+    if (m.isGroup && m.text && !m.isBaileys) {
+      const chat = global.db.data.chats[m.chat];
+      if (chat && chat.antiLink === true) {
+        // Lista de enlaces prohibidos
+        const linksProhibidos = [
+          'chat.whatsapp.com',
+          'whatsapp.com/channel',
+          'instagram.com',
+          'facebook.com',
+          'twitter.com',
+          'tiktok.com',
+          'youtube.com',
+          'youtu.be',
+          'wa.me',
+          't.me',
+          'discord.gg',
+          'linktr.ee',
+          'https://',
+          'http://'
+        ]
+        
+        let tieneLink = false
+        let linkEncontrado = ''
+        
+        for (let link of linksProhibidos) {
+          if (m.text.toLowerCase().includes(link)) {
+            tieneLink = true
+            linkEncontrado = link
+            break
+          }
+        }
+        
+        if (tieneLink && !isAdmin && !isOwner && !isROwner) {
+          const isBotAdmin = groupMetadata?.participants?.some(p => p.id === botJid && p.admin) || false
+          
+          if (isBotAdmin) {
+            // Eliminar el mensaje
+            await this.sendMessage(m.chat, { delete: m.key }).catch(() => {})
+            
+            // Expulsar al usuario
+            await this.groupParticipantsUpdate(m.chat, [m.sender], 'remove').catch(() => {})
+            
+            // Enviar advertencia
+            await this.sendMessage(m.chat, {
+              text: `—͟͟͞͞   *🜸 ʙᴀʟᴅᴡɪɴᴅ ɪᴠ  🛸  ᴄʏʙᴇʀ ᴄᴏʀᴇ  🜸* »\n> 🚫 *ANTILINK ACTIVADO* 🚫\n\n> 👤 *Usuario:* @${m.sender.split('@')[0]}\n> 🔗 *Enlace detectado:* ${linkEncontrado}\n> ⚔️ *Expulsado automáticamente*\n\n👑 *🜸 𝘿𝙀𝙑𝙇𝙔𝙊𝙉𝙉 🜸*`,
+              mentions: [m.sender]
+            }).catch(() => {})
+          } else {
+            // Si el bot no es admin, solo advertir
+            await this.sendMessage(m.chat, {
+              text: `—͟͟͞͞   *🜸 ʙᴀʟᴅᴡɪɴᴅ ɪᴠ  🛸  ᴄʏʙᴇʀ ᴄᴏʀᴇ  🜸* »\n> ⚠️ *ANTILINK ACTIVADO* ⚠️\n\n> 👤 @${m.sender.split('@')[0]}\n> 🔗 *Enlace detectado:* ${linkEncontrado}\n> 📌 *El bot necesita ser administrador para expulsar*\n\n👑 *🜸 𝘿𝙀𝙑𝙇𝙔𝙊𝙉𝙉 🜸*`,
+              mentions: [m.sender]
+            }).catch(() => {})
+          }
+        }
+      }
+    }
 
     // ========== PROCESAR PLUGINS ==========
     const ___dirname = path.join(path.dirname(fileURLToPath(import.meta.url)), '../plugins');
