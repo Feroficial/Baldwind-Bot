@@ -6,7 +6,6 @@ import fetch from 'node-fetch'
 const charset = { a:'ᴀ',b:'ʙ',c:'ᴄ',d:'ᴅ',e:'ᴇ',f:'ꜰ',g:'ɢ',h:'ʜ',i:'ɪ',j:'ᴊ',k:'ᴋ',l:'ʟ',m:'ᴍ',n:'ɴ',o:'ᴏ',p:'ᴘ',q:'ǫ',r:'ʀ',s:'ꜱ',t:'ᴛ',u:'ᴜ',v:'ᴠ',w:'ᴡ',x:'x',y:'ʏ',z:'ᴢ' }
 const textCyberpunk = t => t.toLowerCase().replace(/[a-z]/g, c => charset[c])
 
-// Función para detectar si es Sub-Bot
 const isSubBot = (conn) => {
   if (global.conns && Array.isArray(global.conns)) {
     return global.conns.some(bot => bot.user?.jid === conn.user?.jid)
@@ -14,7 +13,6 @@ const isSubBot = (conn) => {
   return false
 }
 
-// Función para obtener el tipo de bot
 const getBotType = (conn) => {
   const subBot = isSubBot(conn)
   if (subBot) {
@@ -45,21 +43,16 @@ const defaultMenu = {
 }
 
 const menuDir = './media/menu'
-if (!fs.existsSync(menuDir)) {
-  fs.mkdirSync(menuDir, { recursive: true })
-}
+if (!fs.existsSync(menuDir)) fs.mkdirSync(menuDir, { recursive: true })
 
-const getMenuMediaFile = jid =>
-  path.join(menuDir, `menuMedia_${jid.replace(/[:@.]/g, '_')}.json`)
+const getMenuMediaFile = jid => path.join(menuDir, `menuMedia_${jid.replace(/[:@.]/g, '_')}.json`)
 
 const loadMenuMedia = jid => {
   try {
     const file = getMenuMediaFile(jid)
     if (!fs.existsSync(file)) return {}
     return JSON.parse(fs.readFileSync(file))
-  } catch (e) {
-    return {}
-  }
+  } catch { return {} }
 }
 
 const fetchBuffer = async (url) => {
@@ -67,18 +60,16 @@ const fetchBuffer = async (url) => {
     const res = await fetch(url)
     return Buffer.from(await res.arrayBuffer())
   } catch (e) {
-    console.log('Error cargando video:', e.message)
     return null
   }
 }
 
-// Video opcional (si falla, no afecta el menú)
-let defaultVideo = null
+// Imagen del menú
+const FOTO_URL = 'https://files.catbox.moe/o1q5sq.jpeg'
+let fotoBuffer = null
 try {
-  defaultVideo = await fetchBuffer('https://files.catbox.moe/acpp5g.mp4')
-} catch (e) {
-  console.log('Video no disponible')
-}
+  fotoBuffer = await fetchBuffer(FOTO_URL)
+} catch (e) {}
 
 let handler = async (m, { conn, usedPrefix }) => {
   try {
@@ -87,13 +78,11 @@ let handler = async (m, { conn, usedPrefix }) => {
     const botJid = conn.user.jid
     const menuMedia = loadMenuMedia(botJid)
     const menu = global.subBotMenus?.[botJid] || defaultMenu
-    
     const botType = getBotType(conn)
     
     const user = global.db?.data?.users?.[m.sender] || { level: 0, exp: 0 }
     const { min, xp } = xpRange(user.level || 0, global.multiplier || 1)
 
-    // ========== CONTADOR DE COMANDOS ==========
     let totalComandos = 0
     let comandosPorTag = new Map()
     
@@ -105,22 +94,17 @@ let handler = async (m, { conn, usedPrefix }) => {
         prefix: 'customPrefix' in p
       }))
 
-    // Contar comandos totales y por tag
     for (const plugin of help) {
       const cmdCount = plugin.help.length
       totalComandos += cmdCount
-      
       for (const tag of plugin.tags) {
         if (tag) {
-          if (!comandosPorTag.has(tag)) {
-            comandosPorTag.set(tag, 0)
-          }
+          if (!comandosPorTag.has(tag)) comandosPorTag.set(tag, 0)
           comandosPorTag.set(tag, comandosPorTag.get(tag) + cmdCount)
         }
       }
     }
 
-    // Traducir tags
     const tagsMap = { main: 'ꜱɪꜱᴛᴇᴍᴀ', group: 'ɢʀᴜᴘᴏꜱ', serbot: 'ꜱᴜʙ ʙᴏᴛꜱ' }
     for (const { tags: tg } of help) {
       for (const t of tg) {
@@ -128,8 +112,16 @@ let handler = async (m, { conn, usedPrefix }) => {
       }
     }
 
+    let userName = 'Anónimo'
+    try {
+      const name = await conn.getName(m.sender)
+      if (name) userName = name
+    } catch {
+      userName = m.pushName || 'Anónimo'
+    }
+
     const replace = {
-      name: await conn.getName(m.sender).catch(() => 'Anónimo'),
+      name: userName,
       level: user.level || 0,
       exp: (user.exp || 0) - (min || 0),
       maxexp: xp || 1,
@@ -142,29 +134,29 @@ let handler = async (m, { conn, usedPrefix }) => {
       totalCmds: totalComandos
     }
 
-    // Construir menú con contadores por categoría
-    const text = [
-      menu.before,
-      ...Object.keys(tagsMap).map(tag => {
-        const cmds = help
-          .filter(p => p.tags && p.tags.includes(tag))
-          .flatMap(p => p.help.map(c =>
-            menu.body.replace('%cmd', p.prefix ? c : usedPrefix + c)
-          )).join('\n')
-        if (!cmds) return ''
+    // ========== CONSTRUIR TEXTO DEL MENÚ ==========
+    let menuText = menu.before
+
+    for (const tag of Object.keys(tagsMap)) {
+      const cmds = help
+        .filter(p => p.tags && p.tags.includes(tag))
+        .flatMap(p => p.help.map(c => menu.body.replace('%cmd', p.prefix ? c : usedPrefix + c)))
+        .join('\n')
+      if (cmds) {
         const cmdCount = comandosPorTag.get(tag) || 0
-        return `${menu.header.replace('%category', tagsMap[tag]).replace('%count', cmdCount)}\n${cmds}\n${menu.footer}`
-      }).filter(t => t),
-      menu.after
-    ].join('\n').replace(/%(\w+)/g, (_, k) => replace[k] ?? '')
+        menuText += `\n${menu.header.replace('%category', tagsMap[tag]).replace('%count', cmdCount)}\n${cmds}\n${menu.footer}`
+      }
+    }
 
-    const video = (menuMedia.video && fs.existsSync(menuMedia.video))
-      ? fs.readFileSync(menuMedia.video)
-      : defaultVideo
+    menuText += `\n${menu.after}`
+    
+    // Reemplazar variables
+    for (const [key, value] of Object.entries(replace)) {
+      menuText = menuText.replace(new RegExp(`%${key}`, 'g'), value)
+    }
 
-    // SOLO BOTÓN PEDIR CODE
     const messageOptions = {
-      caption: text,
+      text: menuText,
       footer: '🧠 ʙᴀʟᴅᴡɪɴᴅ ɪᴠ • ᴄʏʙᴇʀ ꜱʏꜱᴛᴇᴍ ☘️',
       buttons: [
         { buttonId: `${usedPrefix}code`, buttonText: { displayText: '🕹 PEDIR CODE' }, type: 1 }
@@ -173,7 +165,7 @@ let handler = async (m, { conn, usedPrefix }) => {
         externalAdReply: {
           title: 'ʙᴀʟᴅᴡɪɴᴅ ɪᴠ | ᴄʏʙᴇʀ ᴠᴇʀꜱɪᴏɴ',
           body: '┊࣪ ˖ ᴄʀᴇᴀᴅᴏ ʙʏ • ᴅᴇᴠʟʏᴏɴɴ ♱',
-          thumbnail: null,
+          thumbnail: fotoBuffer,
           sourceUrl: 'https://github.com/Feroficial/Baldwind-IV-Bot.git',
           mediaType: 1,
           renderLargerThumbnail: true
@@ -181,11 +173,7 @@ let handler = async (m, { conn, usedPrefix }) => {
       }
     }
 
-    if (video && video.length > 1000) {
-      await conn.sendMessage(m.chat, { video, gifPlayback: false, ...messageOptions }, { quoted: m })
-    } else {
-      await conn.sendMessage(m.chat, { text: text, ...messageOptions }, { quoted: m })
-    }
+    await conn.sendMessage(m.chat, messageOptions, { quoted: m })
 
   } catch (error) {
     console.error('Error en menu:', error)
@@ -198,7 +186,7 @@ let handler = async (m, { conn, usedPrefix }) => {
 handler.help = ['menu', 'menú']
 handler.tags = ['main']
 handler.command = ['menu', 'menú', 'help', 'ayuda']
-handler.register = true
+handler.register = false
 
 export default handler
 
@@ -207,4 +195,4 @@ const clockString = ms => {
   return [3600000, 60000, 1000].map((v, i) =>
     String(Math.floor(ms / v) % (i ? 60 : 99)).padStart(2, '0')
   ).join(':')
-}
+      }
