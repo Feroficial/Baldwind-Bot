@@ -303,7 +303,8 @@ global.reloadHandler = async function(restatConn) {
 };
 
 
-global.rutaJadiBot = join(__dirname, '../núcleo•clover/baldwindJadiBot')
+// ========== CAMBIADO: núcleo•clover → baldwind-core ==========
+global.rutaJadiBot = join(__dirname, '../baldwind-core/baldwindJadiBot')
 
 if (global.blackJadibts) {
     if (!existsSync(global.rutaJadiBot)) {
@@ -326,6 +327,7 @@ if (global.blackJadibts) {
     }
 }
 
+// ========== CAMBIADO: ruta de plugins ==========
 const pluginFolder = global.__dirname(join(__dirname, '../plugins/index'))
 const pluginFilter = (filename) => /\.js$/.test(filename)
 global.plugins = {}
@@ -503,6 +505,7 @@ setInterval(async () => {
 }, 1000 * 60 * 10)
 
 _quickTest().then(() => conn.logger.info(chalk.bold(`✞ H E C H O\n`.trim()))).catch(console.error)
+
 
 
 let stopped
