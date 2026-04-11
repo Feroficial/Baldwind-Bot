@@ -9,10 +9,8 @@ import moment from 'moment-timezone';
 
 //*─✞─ CONFIGURACIÓN GLOBAL ─✞─*
 
-// Número del bot
-global.botNumber = '';
+global.botNumber = '59177474230';
 
-//*─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─*
 global.owner = [
   ['59177474230', '🜸 𝘿𝙀𝙑𝙇𝙔𝙊𝙉𝙉 🜸', true]
 ];
@@ -21,7 +19,6 @@ global.mods = ['59177474230'];
 global.suittag = ['59177474230'];
 global.prems = ['59177474230'];
 
-//*─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─*
 global.libreria = 'Baileys';
 global.baileys = 'V 6.7.9';
 global.languaje = 'Español';
@@ -32,12 +29,10 @@ global.sessions = 'baldwindSession';
 global.jadi = 'baldwindJadiBot';
 global.blackJadibts = true;
 
-//*─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─*
 global.packsticker = '🜸 BALDWIND IV 🛸 ᚲ DEVLYONN';
 global.packname = '🜸 BALDWIND IV 🛸';
 global.author = '♾━━━━━━━━━━━━━━━♾';
 
-//*─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─*
 global.wm = '🜸 BALDWIND IV 🛸';
 global.titulowm = '🜸 BALDWIND IV 🛸';
 global.igfg = '🜸 DEVLYONN';
@@ -49,7 +44,6 @@ global.namechannel = '🜸 BALDWIND IV / DEVLYONN';
 
 global.monedas = 'monedas';
 
-//*─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─*
 global.gp1 = 'https://chat.whatsapp.com/LPHJXnuklWy62oyHB3FJoQ';
 global.gp2 = 'https://chat.whatsapp.com/LPHJXnuklWy62oyHB3FJoQ';
 global.comunidad1 = 'https://chat.whatsapp.com/LPHJXnuklWy62oyHB3FJoQ';
@@ -61,8 +55,6 @@ global.correo = 'devlyonn@baldwind.com';
 
 global.catalogo = fs.readFileSync(new URL('../src/catalogo.jpg', import.meta.url));
 global.photoSity = [global.catalogo];
-
-//*─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─*
 
 global.estilo = { 
   key: {  
@@ -85,20 +77,15 @@ global.estilo = {
 global.ch = { ch1: "" };
 global.rcanal = global.ch.ch1;
 
-//*─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─*
-
 global.cheerio = cheerio;
 global.fs = fs;
 global.fetch = fetch;
 global.axios = axios;
 global.moment = moment;
 
-//*─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─*
-
 global.multiplier = 69;
 global.maxwarn = 3;
 
-//*─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─✞─ׄ─ׅ─ׄ─*
 const file = fileURLToPath(import.meta.url);
 watchFile(file, () => {
   unwatchFile(file);
