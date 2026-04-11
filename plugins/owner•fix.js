@@ -3,7 +3,7 @@
 
 import { execSync } from 'child_process'
 
-// ========== TU NÚMERO AQUÍ (CAMBIA ESTO SI ES NECESARIO) ==========
+// ========== TU NÚMERO AQUÍ ==========
 const MI_NUMERO = '59177474230'
 
 let handler = async (m, { conn, args, usedPrefix, command }) => {
@@ -17,7 +17,18 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
   try {
     await conn.reply(m.chat, '—͟͟͞͞   *🜸 ʙᴀʟᴅᴡɪɴᴅ ɪᴠ  🛸  ᴄʏʙᴇʀ ᴄᴏʀᴇ  🜸* »\n> ⏳ *Actualizando el bot...*', m)
 
+    // Guardar cambios locales antes de actualizar
+    try {
+      execSync('git stash', { stdio: 'pipe' })
+    } catch (e) {}
+
     const output = execSync('git pull' + (args.length ? ' ' + args.join(' ') : '')).toString()
+    
+    // Restaurar cambios guardados
+    try {
+      execSync('git stash pop', { stdio: 'pipe' })
+    } catch (e) {}
+
     const isUpdated = output.includes('Already up to date')
 
     const updateMsg = isUpdated
@@ -27,6 +38,11 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
     await conn.reply(m.chat, updateMsg, m)
 
   } catch (error) {
+    // Si hay error, restaurar cambios
+    try {
+      execSync('git stash pop', { stdio: 'pipe' })
+    } catch (e) {}
+
     await conn.reply(m.chat, `—͟͟͞͞   *🜸 ʙᴀʟᴅᴡɪɴᴅ ɪᴠ  🛸  ᴄʏʙᴇʀ ᴄᴏʀᴇ  🜸* »\n> ❌ *Error al actualizar:*\n> ${error.message}\n\n👑 *🜸 𝘋𝙀𝙑𝙇𝙔𝙊𝙉𝙉 🜸*`, m)
   }
 }
@@ -34,6 +50,6 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
 handler.help = ['fix', 'update', 'actualizar']
 handler.tags = ['owner']
 handler.command = ['fix', 'update', 'actualizar']
-handler.rowner = false  // Importante: desactivar verificación global
+handler.rowner = false
 
 export default handler
