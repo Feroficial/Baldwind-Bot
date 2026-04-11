@@ -9,7 +9,7 @@ import moment from 'moment-timezone';
 
 //*─✞─ CONFIGURACIÓN GLOBAL ─✞─*
 
-global.botNumber = '59177474230';
+global.botNumber = '';
 
 global.owner = [
   ['59177474230', '🜸 𝘿𝙀𝙑𝙇𝙔𝙊𝙉𝙉 🜸', true]
