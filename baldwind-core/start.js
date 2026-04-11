@@ -104,19 +104,11 @@ const question = (texto) => new Promise((resolver) => rl.question(texto, resolve
 let opcion = '1';
 const credsExist = fs.existsSync(`./${global.sessions}/creds.json`);
 
-// ========== GUARDAR OPCIÓN SELECCIONADA ==========
-let modoGuardado = null;
-const modoFile = './.modo_conexion';
-
-if (fs.existsSync(modoFile)) {
-    modoGuardado = fs.readFileSync(modoFile, 'utf8');
-}
-
-// ========== PREGUNTAR SOLO SI NO HAY SESIÓN O SI SE FORZA ==========
-if (!methodCodeQR && !methodCode && (!credsExist || !modoGuardado)) {
+// ========== SOLO PREGUNTAR SI NO HAY SESIÓN ==========
+if (!methodCodeQR && !methodCode && !credsExist) {
     do {
         opcion = await question(
-            chalk.bgYellow.black('⌬ BALDWIND IV - SELECCIONA MODO DE CONEXIÓN:\n') +
+            chalk.bgYellow.black('⌬ BALDWIND IV - SELECCIONA MODO:\n') +
             chalk.bold.yellow('1. Código QR\n') +
             chalk.bold.cyan('2. Código de 8 dígitos\n🜸➤ ')
         );
@@ -124,12 +116,11 @@ if (!methodCodeQR && !methodCode && (!credsExist || !modoGuardado)) {
             console.log(chalk.bold.redBright(`✞ Opción inválida. Elige 1 o 2.`));
         }
     } while (opcion !== '1' && opcion !== '2');
-    console.log(chalk.bold.green(`✅ Modo seleccionado: ${opcion === '1' ? 'QR' : 'Código de 8 dígitos'}\n`));
-    // Guardar modo seleccionado
-    fs.writeFileSync(modoFile, opcion);
-} else if (modoGuardado) {
-    opcion = modoGuardado;
-    console.log(chalk.bold.green(`✅ Usando modo guardado: ${opcion === '2' ? 'QR' : 'Código de 8 dígitos'}\n`));
+    console.log(chalk.bold.green(`✅ Modo: ${opcion === '1' ? 'QR' : 'Código de 8 dígitos'}\n`));
+} else {
+    // SI HAY SESIÓN, USAR QR AUTOMÁTICO (SIN PREGUNTAR)
+    opcion = '1';
+    console.log(chalk.bold.green(`✅ Sesión existente. Usando QR automático.\n`));
 }
 
 console.info = () => {};
@@ -137,7 +128,7 @@ console.debug = () => {};
 
 const connectionOptions = {
     logger: pino({ level: 'silent' }),
-    printQRInTerminal: opcion === '1',
+    printQRInTerminal: true,  // SIEMPRE QR, PERO EL USUARIO PUEDE USAR CÓDIGO SI SELECCIONÓ 2
     mobile: MethodMobile, 
     browser: opcion === '1' ? [`${global.nameqr}`, 'Edge', '20.0.04'] : ['Ubuntu', 'Edge', '110.0.1587.56'],
     auth: {
@@ -159,27 +150,25 @@ const connectionOptions = {
 
 global.conn = makeWASocket(connectionOptions)
 
-// ========== PAIRING CODE (CÓDIGO DE 8 DÍGITOS) ==========
+// ========== CÓDIGO DE 8 DÍGITOS (SOLO SI SE SELECCIONÓ OPCIÓN 2 Y NO HAY SESIÓN) ==========
 if (opcion === '2' && !credsExist) {
-    if (!fs.existsSync(`./${global.sessions}/creds.json`)) {
-        if (!conn.authState.creds.registered) {
-            let addNumber = phoneNumber;
-            if (!addNumber) {
-                addNumber = await question(chalk.bgBlack(chalk.bold.greenBright(`✞ Ingresa tu número (ej: 59177474230):\n🜸➤ `)));
-                addNumber = addNumber.replace(/\D/g, '');
-                rl.close();
-            }
-            setTimeout(async () => {
-                try {
-                    let codeBot = await conn.requestPairingCode(addNumber);
-                    codeBot = codeBot?.match(/.{1,4}/g)?.join("-") || codeBot;
-                    console.log(chalk.bold.white(chalk.bgMagenta(`🜸 CÓDIGO BALDWIND IV 🜸`)), chalk.bold.white(codeBot));
-                    console.log(chalk.cyan('📌 Ingresa este código en: WhatsApp > Dispositivos vinculados'));
-                } catch (e) {
-                    console.log(chalk.red('❌ Error:', e.message));
-                }
-            }, 3000);
+    if (!conn.authState.creds.registered) {
+        let addNumber = phoneNumber;
+        if (!addNumber) {
+            addNumber = await question(chalk.bgBlack(chalk.bold.greenBright(`✞ Ingresa tu número (ej: 59177474230):\n🜸➤ `)));
+            addNumber = addNumber.replace(/\D/g, '');
+            rl.close();
         }
+        setTimeout(async () => {
+            try {
+                let codeBot = await conn.requestPairingCode(addNumber);
+                codeBot = codeBot?.match(/.{1,4}/g)?.join("-") || codeBot;
+                console.log(chalk.bold.white(chalk.bgMagenta(`🜸 CÓDIGO: ${codeBot} 🜸`)));
+                console.log(chalk.cyan('📌 Ingresa en WhatsApp > Dispositivos vinculados'));
+            } catch (e) {
+                console.log(chalk.red('❌ Error:', e.message));
+            }
+        }, 3000);
     }
 }
 
@@ -203,9 +192,7 @@ async function connectionUpdate(update) {
     if (!global.db.data) loadDatabase();
 
     if ((qr && qr !== '0')) {
-        if (opcion === '1') {
-            console.log(chalk.bold.yellow(`\n❐ ESCANEA EL CÓDIGO QR - EXPIRA EN 45 SEGUNDOS`));
-        }
+        console.log(chalk.bold.yellow(`\n❐ ESCANEA EL CÓDIGO QR - EXPIRA EN 45 SEGUNDOS`));
     }
 
     if (connection === 'open') {
