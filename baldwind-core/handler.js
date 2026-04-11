@@ -173,7 +173,7 @@ export async function handler(chatUpdate) {
     const isAdmin = isRAdmin || user.admin === 'admin';
     const isBotAdmin = !!bot.admin;
 
-    // ========== SISTEMA ANTILINK (CORREGIDO) ==========
+    // ========== SISTEMA ANTILINK (COLOCADO ANTES DE PROCESAR PLUGINS) ==========
     if (m.isGroup && m.text && !m.isBaileys) {
       const chat = global.db.data.chats[m.chat];
       
@@ -195,21 +195,34 @@ export async function handler(chatUpdate) {
           }
         }
         
+        // También detectar URLs con regex
+        const urlRegex = /(https?:\/\/[^\s]+)/gi
+        if (urlRegex.test(m.text) && !tieneLink) {
+          tieneLink = true
+          linkEncontrado = 'enlace'
+        }
+        
         if (tieneLink && !isAdmin && !isRAdmin && !isOwner && !isROwner) {
-          const isBotAdminGroup = groupMetadata?.participants?.some(p => p.id === botJid && p.admin) || false
+          // Eliminar el mensaje
+          try {
+            await this.sendMessage(m.chat, { delete: m.key })
+          } catch (e) {}
           
-          if (isBotAdminGroup) {
-            await this.sendMessage(m.chat, { delete: m.key }).catch(() => {})
-            await this.groupParticipantsUpdate(m.chat, [m.sender], 'remove').catch(() => {})
+          if (isBotAdmin) {
+            // Expulsar al usuario
+            try {
+              await this.groupParticipantsUpdate(m.chat, [m.sender], 'remove')
+            } catch (e) {}
+            
             await this.sendMessage(m.chat, {
               text: `—͟͟͞͞   *🜸 ʙᴀʟᴅᴡɪɴᴅ ɪᴠ  🛸  ᴄʏʙᴇʀ ᴄᴏʀᴇ  🜸* »\n> 🚫 *ANTILINK ACTIVADO* 🚫\n\n> 👤 *Usuario:* @${m.sender.split('@')[0]}\n> 🔗 *Enlace detectado:* ${linkEncontrado}\n> ⚔️ *Expulsado automáticamente*\n\n👑 *🜸 𝘿𝙀𝙑𝙇𝙔𝙊𝙉𝙉 🜸*`,
               mentions: [m.sender]
-            }).catch(() => {})
+            })
           } else {
             await this.sendMessage(m.chat, {
               text: `—͟͟͞͞   *🜸 ʙᴀʟᴅᴡɪɴᴅ ɪᴠ  🛸  ᴄʏʙᴇʀ ᴄᴏʀᴇ  🜸* »\n> ⚠️ *ANTILINK ACTIVADO* ⚠️\n\n> 👤 @${m.sender.split('@')[0]}\n> 🔗 *Enlace detectado:* ${linkEncontrado}\n> 📌 *El bot necesita ser administrador para expulsar*\n\n👑 *🜸 𝘿𝙀𝙑𝙇𝙔𝙊𝙉𝙉 🜸*`,
               mentions: [m.sender]
-            }).catch(() => {})
+            })
           }
         }
       }
