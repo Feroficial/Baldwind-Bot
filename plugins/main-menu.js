@@ -6,12 +6,6 @@ import fetch from 'node-fetch'
 const charset = { a:'ᴀ',b:'ʙ',c:'ᴄ',d:'ᴅ',e:'ᴇ',f:'ꜰ',g:'ɢ',h:'ʜ',i:'ɪ',j:'ᴊ',k:'ᴋ',l:'ʟ',m:'ᴍ',n:'ɴ',o:'ᴏ',p:'ᴘ',q:'ǫ',r:'ʀ',s:'ꜱ',t:'ᴛ',u:'ᴜ',v:'ᴠ',w:'ᴡ',x:'x',y:'ʏ',z:'ᴢ' }
 const textCyberpunk = t => t.toLowerCase().replace(/[a-z]/g, c => charset[c])
 
-const tags = {
-  main: textCyberpunk('sistema'),
-  group: textCyberpunk('grupos'),
-  serbot: textCyberpunk('sub bots')
-}
-
 // Función para detectar si es Sub-Bot
 const isSubBot = (conn) => {
   if (global.conns && Array.isArray(global.conns)) {
@@ -20,7 +14,7 @@ const isSubBot = (conn) => {
   return false
 }
 
-// Función para obtener el tipo de bot (simple y claro)
+// Función para obtener el tipo de bot
 const getBotType = (conn) => {
   const subBot = isSubBot(conn)
   if (subBot) {
@@ -38,12 +32,13 @@ const defaultMenu = {
 > ⏳ ᴀᴄᴛɪᴠᴏ   » %muptime
 > 👥 ᴜꜱᴜᴀʀɪᴏꜱ » %totalreg
 > 🤖 %botIcon *%botName*
+> 📊 ᴄᴏᴍᴀɴᴅᴏꜱ: %totalCmds
 
 ✦  𝗕𝗔𝗟𝗗𝗪𝗜𝗡𝗗 𝗜𝗩  •  𝗘𝗟𝗜𝗧𝗘 𝗠𝗘𝗡𝗨  ✦
 👑  ᴄʀᴇᴀᴅᴏʀ:  ★  ᴅᴇᴠʟʏᴏɴɴ  ★
 %readmore
 `.trimStart(),
-  header: '\n⧼⋆꙳•〔 🛸 %category 〕⋆꙳•⧽',
+  header: '\n⧼⋆꙳•〔 🛸 %category (%count) 〕⋆꙳•⧽',
   body: '> 🔖 %cmd',
   footer: '╰⋆꙳•❅‧*₊⋆꙳︎‧*❆₊⋆╯',
   after: '\n⌬ ʙᴀʟᴅᴡɪɴᴅ ɪᴠ ᴄʏʙᴇʀ ᴍᴇɴᴜ 🧬 - ᴄᴏɴᴇᴄᴛᴀᴅᴏ ᴘᴏʀ: ᴅᴇᴠʟʏᴏɴɴ'
@@ -64,7 +59,6 @@ const loadMenuMedia = jid => {
 const fetchBuffer = async url =>
   Buffer.from(await (await fetch(url)).arrayBuffer())
 
-// SOLO VIDEO, SIN FOTO
 const defaultVideo = await fetchBuffer('https://files.catbox.moe/acpp5g.mp4')
 
 let handler = async (m, { conn, usedPrefix }) => {
@@ -74,11 +68,45 @@ let handler = async (m, { conn, usedPrefix }) => {
   const menuMedia = loadMenuMedia(botJid)
   const menu = global.subBotMenus?.[botJid] || defaultMenu
   
-  // Detectar tipo de bot
   const botType = getBotType(conn)
   
   const user = global.db.data.users[m.sender] || { level: 0, exp: 0 }
   const { min, xp } = xpRange(user.level, global.multiplier)
+
+  // ========== CONTADOR DE COMANDOS ==========
+  let totalComandos = 0
+  let comandosPorTag = new Map()
+  
+  const help = Object.values(global.plugins || {})
+    .filter(p => !p.disabled)
+    .map(p => ({
+      help: [].concat(p.help || []),
+      tags: [].concat(p.tags || []),
+      prefix: 'customPrefix' in p
+    }))
+
+  // Contar comandos totales y por tag
+  for (const plugin of help) {
+    const cmdCount = plugin.help.length
+    totalComandos += cmdCount
+    
+    for (const tag of plugin.tags) {
+      if (tag) {
+        if (!comandosPorTag.has(tag)) {
+          comandosPorTag.set(tag, 0)
+        }
+        comandosPorTag.set(tag, comandosPorTag.get(tag) + cmdCount)
+      }
+    }
+  }
+
+  // Traducir tags
+  const tagsMap = { main: 'ꜱɪꜱᴛᴇᴍᴀ', group: 'ɢʀᴜᴘᴏꜱ', serbot: 'ꜱᴜʙ ʙᴏᴛꜱ' }
+  for (const { tags: tg } of help) {
+    for (const t of tg) {
+      if (t && !tagsMap[t]) tagsMap[t] = textCyberpunk(t)
+    }
+  }
 
   const replace = {
     name: await conn.getName(m.sender),
@@ -90,31 +118,23 @@ let handler = async (m, { conn, usedPrefix }) => {
     muptime: clockString(process.uptime() * 1000),
     readmore: String.fromCharCode(8206).repeat(4001),
     botIcon: botType.icon,
-    botName: botType.name
+    botName: botType.name,
+    totalCmds: totalComandos
   }
 
-  const help = Object.values(global.plugins || {})
-    .filter(p => !p.disabled)
-    .map(p => ({
-      help: [].concat(p.help || []),
-      tags: [].concat(p.tags || []),
-      prefix: 'customPrefix' in p
-    }))
-
-  for (const { tags: tg } of help)
-    for (const t of tg)
-      if (t && !tags[t]) tags[t] = textCyberpunk(t)
-
+  // Construir menú con contadores por categoría
   const text = [
     menu.before,
-    ...Object.keys(tags).map(tag => {
+    ...Object.keys(tagsMap).map(tag => {
       const cmds = help
         .filter(p => p.tags.includes(tag))
         .flatMap(p => p.help.map(c =>
           menu.body.replace('%cmd', p.prefix ? c : usedPrefix + c)
         )).join('\n')
-      return `${menu.header.replace('%category', tags[tag])}\n${cmds}\n${menu.footer}`
-    }),
+      if (!cmds) return ''
+      const cmdCount = comandosPorTag.get(tag) || 0
+      return `${menu.header.replace('%category', tagsMap[tag]).replace('%count', cmdCount)}\n${cmds}\n${menu.footer}`
+    }).filter(t => t),
     menu.after
   ].join('\n').replace(/%(\w+)/g, (_, k) => replace[k] ?? '')
 
@@ -122,14 +142,14 @@ let handler = async (m, { conn, usedPrefix }) => {
     ? fs.readFileSync(menuMedia.video)
     : defaultVideo
 
+  // SOLO BOTÓN PEDIR CODE (el otro eliminado)
   await conn.sendMessage(m.chat, {
     video,
     gifPlayback: false,
     caption: text,
     footer: '🧠 ʙᴀʟᴅᴡɪɴᴅ ɪᴠ • ᴄʏʙᴇʀ ꜱʏꜱᴛᴇᴍ ☘️',
     buttons: [
-      { buttonId: `${usedPrefix}menurpg`, buttonText: { displayText: '🏛️ ᴍᴇɴᴜ ʀᴘɢ' }, type: 1 },
-      { buttonId: `${usedPrefix}code`, buttonText: { displayText: '🕹 sᴇʀʙᴏᴛ ᴍᴇɴᴜ' }, type: 1 }
+      { buttonId: `${usedPrefix}code`, buttonText: { displayText: '🕹 PEDIR CODE' }, type: 1 }
     ],
     contextInfo: {
       externalAdReply: {
