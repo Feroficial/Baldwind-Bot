@@ -183,78 +183,113 @@ export async function handler(chatUpdate) {
     const isRAdmin = user.admin === 'superadmin';
     const isAdmin = isRAdmin || user.admin === 'admin';
     const isBotAdmin = !!bot.admin;
-
-    // ========== SISTEMA DE WELCOME (CORREGIDO) ==========
-    // Detectar cuando alguien entra o sale del grupo
-    if (m.isGroup && m.messageStubType) {
-      const chat = global.db.data.chats[m.chat];
+// ========== SISTEMA DE WELCOME (VERSIÓN CORREGIDA) ==========
+// Detectar cuando alguien entra o sale del grupo
+if (m.isGroup) {
+  const chat = global.db.data.chats[m.chat];
+  
+  // MÉTODO 1: Verificar messageStubType
+  if (m.messageStubType) {
+    // 27 = ADD, 29 = LEAVE
+    if ((m.messageStubType === 27 || m.messageStubType === 29) && chat && chat.welcome === true) {
+      const affectedJids = m.messageStubParameters || [];
+      await procesarEventoGrupo(this, m, chat, affectedJids, m.messageStubType === 27 ? 'add' : 'leave', groupMetadata);
+    }
+  }
+  
+  // MÉTODO 2: Verificar si hay mensaje de protocolo (nuevo método)
+  if (m.message?.protocolMessage?.type) {
+    const protocolType = m.message.protocolMessage.type;
+    const content = m.message.protocolMessage;
+    
+    // 1 = REVOKE, 2 = EPHEMERAL_SETTING, etc.
+    // Para eventos de grupo específicos
+    if (content?.groupInviteMessage) {
+      // Alguien se unió por invitación
+      const inviter = content.groupInviteMessage.inviter;
+      const groupJid = content.groupInviteMessage.groupJid;
       
-      // Tipos de eventos de WhatsApp
-      // 27 = ADD (alguien fue agregado)
-      // 28 = REMOVE (alguien fue eliminado)
-      // 29 = LEAVE (alguien salió)
-      
-      if ((m.messageStubType === 27 || m.messageStubType === 29) && chat && chat.welcome === true) {
-        const affectedJids = m.messageStubParameters || [];
-        
-        for (const jid of affectedJids) {
-          if (m.messageStubType === 27) {
-            // BIENVENIDA
-            const userName = await this.getName(jid);
-            const groupName = groupMetadata?.subject || 'este grupo';
-            const memberCount = participants.length + 1;
-            
-            let userData = global.db.data.users[jid] || {};
-            let userLevel = userData.level || 1;
-            let userRole = userData.role || '⚔️ Escudero';
-            
-            // Reemplazar variables en el mensaje personalizado
-            let welcomeText = chat.welcomeMessage || '—͟͟͞͞   *🜸 ʙᴀʟᴅᴡɪɴᴅ ɪᴠ  🛸  ᴄʏʙᴇʀ ᴄᴏʀᴇ  🜸* »\n\n> ✨ *BIENVENIDO/A* ✨\n\n> 👤 *Nombre:* @user\n> 📊 *Nivel:* @level\n> 🛡️ *Rol:* @role\n> 👥 *Miembros:* @count\n\n> 🌟 *Disfruta tu estadía en @group*\n\n👑 *🜸 𝘿𝙀𝙑𝙇𝙔𝙊𝙉𝙉 🜸*';
-            
-            welcomeText = welcomeText
-              .replace(/@user/g, `@${jid.split('@')[0]}`)
-              .replace(/@level/g, userLevel)
-              .replace(/@role/g, userRole)
-              .replace(/@count/g, memberCount)
-              .replace(/@group/g, groupName);
-            
-            await this.sendMessage(m.chat, { 
-              text: welcomeText,
-              mentions: [jid]
-            });
-            
-            // Bonus de bienvenida
-            if (chat.welcomeBonus !== false) {
-              if (userData) {
-                userData.monedas = (userData.monedas || 0) + 50;
-                userData.exp = (userData.exp || 0) + 100;
-                try {
-                  await this.sendMessage(jid, {
-                    text: `—͟͟͞͞   *🜸 ʙᴀʟᴅᴡɪɴᴅ ɪᴠ  🛸  ᴄʏʙᴇʀ ᴄᴏʀᴇ  🜸* »\n\n> 🎁 *BONUS DE BIENVENIDA* 🎁\n\n> 💰 *+50 Monedas*\n> ✨ *+100 EXP*\n\n> 📌 *Usa #menu para comenzar tu aventura*\n\n👑 *🜸 𝘿𝙀𝙑𝙇𝙔𝙊𝙉𝙉 🜸*`
-                  }).catch(() => {});
-                } catch(e) {}
-              }
-            }
-            
-            console.log(chalk.green(`✅ Bienvenida enviada a ${jid.split('@')[0]} en ${m.chat}`));
-            
-          } else if (m.messageStubType === 29) {
-            // DESPEDIDA
-            const memberCount = participants.length;
-            
-            const goodbyeMessage = `—͟͟͞͞   *🜸 ʙᴀʟᴅᴡɪɴᴅ ɪᴠ  🛸  ᴄʏʙᴇʀ ᴄᴏʀᴇ  🜸* »\n\n> 👋 *HASTA PRONTO* 👋\n\n> 👤 @${jid.split('@')[0]} *ha abandonado el grupo*\n> 👥 *Miembros restantes:* ${memberCount}\n\n> 🌟 *Siempre serás bienvenido de vuelta*\n\n👑 *🜸 𝘿𝙀𝙑𝙇𝙔𝙊𝙉𝙉 🜸*`;
-            
-            await this.sendMessage(m.chat, { 
-              text: goodbyeMessage,
-              mentions: [jid]
-            });
-            
-            console.log(chalk.yellow(`👋 Despedida enviada por ${jid.split('@')[0]} en ${m.chat}`));
-          }
-        }
+      if (chat && chat.welcome === true && groupJid === m.chat) {
+        await procesarEventoGrupo(this, m, chat, [m.sender], 'add', groupMetadata);
       }
     }
+  }
+  
+  // MÉTODO 3: Verificar participantes en el mensaje (para grupos)
+  if (m.message?.groupParticipantUpdate) {
+    const update = m.message.groupParticipantUpdate;
+    const participants = update.participants || [];
+    
+    if (update.action === 'add' && chat && chat.welcome === true) {
+      await procesarEventoGrupo(this, m, chat, participants, 'add', groupMetadata);
+    }
+    
+    if (update.action === 'remove' && chat && chat.welcome === true) {
+      await procesarEventoGrupo(this, m, chat, participants, 'leave', groupMetadata);
+    }
+  }
+}
 
+// Función para procesar eventos de grupo
+async function procesarEventoGrupo(conn, m, chat, jids, tipo, groupMetadata) {
+  const groupName = groupMetadata?.subject || 'este grupo';
+  
+  for (const jid of jids) {
+    if (tipo === 'add') {
+      // Obtener datos del usuario
+      let userData = global.db.data.users[jid] || {};
+      let userLevel = userData.level || 1;
+      let userRole = userData.role || '⚔️ Escudero';
+      const memberCount = (groupMetadata?.participants?.length || 0) + 1;
+      
+      // Mensaje personalizado o por defecto
+      let welcomeText = chat.welcomeMessage || '—͟͟͞͞   *🜸 ʙᴀʟᴅᴡɪɴᴅ ɪᴠ  🛸  ᴄʏʙᴇʀ ᴄᴏʀᴇ  🜸* »\n\n> ✨ *BIENVENIDO/A* ✨\n\n> 👤 *Nombre:* @user\n> 📊 *Nivel:* @level\n> 🛡️ *Rol:* @role\n> 👥 *Miembros:* @count\n\n> 🌟 *Disfruta tu estadía en @group*\n\n👑 *🜸 𝘿𝙀𝙑𝙇𝙔𝙊𝙉𝙉 🜸*';
+      
+      welcomeText = welcomeText
+        .replace(/@user/g, `@${jid.split('@')[0]}`)
+        .replace(/@level/g, userLevel)
+        .replace(/@role/g, userRole)
+        .replace(/@count/g, memberCount)
+        .replace(/@group/g, groupName);
+      
+      // Enviar bienvenida
+      await conn.sendMessage(m.chat, { 
+        text: welcomeText,
+        mentions: [jid]
+      }).catch(e => console.log('Error en welcome:', e));
+      
+      // Bonus de bienvenida (opcional)
+      if (chat.welcomeBonus !== false) {
+        if (userData) {
+          userData.monedas = (userData.monedas || 0) + 50;
+          userData.exp = (userData.exp || 0) + 100;
+          
+          // Enviar mensaje privado con el bonus
+          try {
+            await conn.sendMessage(jid, {
+              text: `—͟͟͞͞   *🜸 ʙᴀʟᴅᴡɪɴᴅ ɪᴠ  🛸  ᴄʏʙᴇʀ ᴄᴏʀᴇ  🜸* »\n\n> 🎁 *BONUS DE BIENVENIDA* 🎁\n\n> 💰 *+50 Monedas*\n> ✨ *+100 EXP*\n\n> 📌 *Usa #menu para comenzar tu aventura*\n\n👑 *🜸 𝘿𝙀𝙑𝙇𝙔𝙊𝙉𝙉 🜸*`
+            }).catch(() => {});
+          } catch(e) {}
+        }
+      }
+      
+      console.log(chalk.green(`✅ Welcome enviado a ${jid.split('@')[0]} en ${m.chat}`));
+      
+    } else if (tipo === 'leave') {
+      // DESPEDIDA
+      const memberCount = groupMetadata?.participants?.length || 0;
+      
+      const goodbyeMessage = `—͟͟͞͞   *🜸 ʙᴀʟᴅᴡɪɴᴅ ɪᴠ  🛸  ᴄʏʙᴇʀ ᴄᴏʀᴇ  🜸* »\n\n> 👋 *HASTA PRONTO* 👋\n\n> 👤 @${jid.split('@')[0]} *ha abandonado el grupo*\n> 👥 *Miembros restantes:* ${memberCount}\n\n> 🌟 *Siempre serás bienvenido de vuelta*\n\n👑 *🜸 𝘿𝙀𝙑𝙇𝙔𝙊𝙉𝙉 🜸*`;
+      
+      await conn.sendMessage(m.chat, { 
+        text: goodbyeMessage,
+        mentions: [jid]
+      }).catch(e => console.log('Error en despedida:', e));
+      
+      console.log(chalk.yellow(`👋 Despedida enviada por ${jid.split('@')[0]} en ${m.chat}`));
+    }
+  }
+}
     // ========== SISTEMA ANTILINK ==========
     if (m.isGroup && m.text && !m.isBaileys) {
       const chat = global.db.data.chats[m.chat];
