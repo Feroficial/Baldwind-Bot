@@ -11,7 +11,6 @@ Adaptacion y edición echa por:
 */
 
 import { useMultiFileAuthState, DisconnectReason, makeCacheableSignalKeyStore, fetchLatestBaileysVersion, Browsers } from "@whiskeysockets/baileys"
-import qrcode from "qrcode"
 import NodeCache from "node-cache"
 import fs from "fs"
 import path from "path"
@@ -33,58 +32,10 @@ let crm2 = "A7IG1kNXN1b"
 let crm3 = "SBpbmZvLWRvbmFyLmpz"
 let crm4 = "IF9hdXRvcmVzcG9uZGVyLmpzIGluZm8tYm90Lmpz"
 
-let drm1 = ""
-let drm2 = ""
-
-let rtx =
-`—͟͟͞͞   *🜸 𝘽𝘼𝙇𝘿𝙒𝙄𝙉𝘿 𝙄𝙑 • 𝙎𝙐𝘽-𝘽𝙊𝙏 𝙎𝙄𝙎𝙏𝙀𝙈 🛸* —͟͟͞͞
-
-> 📲 *𝙀𝙨𝙘𝙖𝙣𝙚𝙖 𝙚𝙡 𝙂𝙧𝙞𝙢𝙤𝙧𝙞𝙤 𝙌𝙍*
-> ⋮ 𝘿𝙞𝙨𝙥𝙤𝙨𝙞𝙩𝙞𝙫𝙤𝙨 𝙫𝙞𝙣𝙘𝙪𝙡𝙖𝙙𝙤𝙨 > 𝙀𝙨𝙘𝙖𝙣𝙚𝙖𝙧 𝙘ó𝙙𝙞𝙜𝙤
-
-> ⏳ *𝙀𝙡 𝙨𝙚𝙡𝙡𝙤 𝙢á𝙜𝙞𝙘𝙤 𝙙𝙪𝙧𝙖 45 𝙨𝙚𝙜𝙪𝙣𝙙𝙤𝙨*
-
-> 🔥 *𝘾𝙤𝙣𝙫𝙞𝙚𝙧𝙩𝙚𝙩𝙚 𝙚𝙣 𝙪𝙣 𝙎𝙪𝙗-𝘽𝙤𝙩 𝙏𝙚𝙢𝙥𝙤𝙧𝙖𝙡*
-> ⚔️ *𝙎𝙞𝙧𝙫𝙚 𝙖𝙡 𝙍𝙚𝙞𝙣𝙤 𝙙𝙚 𝘽𝘼𝙇𝘿𝙒𝙄𝙉𝘿*
-> 🧿 *𝙏𝙪 𝙚𝙣𝙚𝙧𝙜í𝙖 𝙦𝙪𝙚𝙙𝙖𝙧á 𝙫𝙞𝙣𝙘𝙪𝙡𝙖𝙙𝙖 𝙖𝙡 𝙂𝙧𝙞𝙢𝙤𝙧𝙞𝙤 𝙥𝙧𝙞𝙣𝙘𝙞𝙥𝙖𝙡*
-
-> 🛡️ *100% 𝘼𝙉𝙏𝙄-𝘽𝘼𝙉 • 𝘾𝙐𝙀𝙉𝙏𝘼 𝙋𝙍𝙄𝙉𝘾𝙄𝙋𝘼𝙇*
-
-👑 *🜸 𝙇𝙮𝙤𝙣𝙣𝘿𝙚𝙫 & 𝙑𝙖𝙡𝙚𝙣𝙩𝙞𝙣𝙖𝘿𝙚𝙫 🜸*
-
-⌬ 𝘽𝘼𝙇𝘿𝙒𝙄𝙉𝘿 𝙄𝙑 • 𝘾𝙔𝘽𝙀𝙍 𝘾𝙊𝙍𝙀 ⌬`
-
-let rtx2 =
-`—͟͟͞͞   *🜸 𝘽𝘼𝙇𝘿𝙒𝙄𝙉𝘿 𝙄𝙑 • 𝙎𝙐𝘽-𝘽𝙊𝙏 𝙎𝙄𝙎𝙏𝙀𝙈 🛸* —͟͟͞͞
-
-> 🜲 *𝙐𝙨𝙖 𝙚𝙨𝙩𝙚 𝘾ó𝙙𝙞𝙜𝙤 𝙀𝙨𝙥𝙞𝙧𝙞𝙩𝙪𝙖𝙡*
-> ⚔️ *𝘾𝙤𝙣𝙫𝙞𝙚𝙧𝙩𝙚𝙩𝙚 𝙚𝙣 𝙪𝙣 𝙎𝙪𝙗-𝘽𝙤𝙩 𝙏𝙚𝙢𝙥𝙤𝙧𝙖𝙡*
-
-> ⏳ *𝘼𝙙𝙫𝙚𝙧𝙩𝙚𝙣𝙘𝙞𝙖:* 𝙚𝙨𝙩𝙚 𝙫í𝙣𝙘𝙪𝙡𝙤 𝙚𝙨 𝙙𝙚𝙡𝙞𝙘𝙖𝙙𝙤
-> ⚠️ *𝙉𝙤 𝙪𝙨𝙚𝙨 𝙩𝙪 𝙘𝙪𝙚𝙣𝙩𝙖 𝙥𝙧𝙞𝙣𝙘𝙞𝙥𝙖𝙡*
-
-> 🛡️ *100% 𝘼𝙉𝙏𝙄-𝘽𝘼𝙉 • 𝘾𝙐𝙀𝙉𝙏𝘼 𝙋𝙍𝙄𝙉𝘾𝙄𝙋𝘼𝙇*
-
-> 🧿 *𝙎𝙄𝙎𝙏𝙀𝙈𝘼 ➤ [ 𝘾Ó𝘿𝙄𝙂𝙊 𝘼𝘾𝙏𝙄𝙑𝙊 ]*
-> ⚔️ *𝘼𝙘𝙩𝙞𝙫𝙖 𝙚𝙡 𝙫í𝙣𝙘𝙪𝙡𝙤 𝙘𝙪𝙖𝙣𝙙𝙤 𝙚𝙨𝙩é𝙨 𝙥𝙧𝙚𝙥𝙖𝙧𝙖𝙙𝙤*
-
-👑 *🜸 𝙇𝙮𝙤𝙣𝙣𝘿𝙚𝙫 & 𝙑𝙖𝙡𝙚𝙣𝙩𝙞𝙣𝙖𝘿𝙚𝙫 🜸*
-
-⌬ 𝘽𝘼𝙇𝘿𝙒𝙄𝙉𝘿 𝙄𝙑 • 𝘾𝙔𝘽𝙀𝙍 𝘾𝙊𝙍𝙀 ⌬`
-
 const maxSubBots = 500
-
 let blackJBOptions = {}
 
 if (!global.conns) global.conns = []
-
-function msToTime(duration) {
-  var seconds = Math.floor((duration / 1000) % 60),
-      minutes = Math.floor((duration / (1000 * 60)) % 60)
-  minutes = (minutes < 10) ? '0' + minutes : minutes
-  seconds = (seconds < 10) ? '0' + seconds : seconds
-  return minutes + ' m y ' + seconds + ' s '
-}
 
 // ========== CONFIGURACIÓN DEL SUB-BOT ==========
 const SUB_BOT_NAME = '🜸 𝘽𝘼𝙇𝘿𝙒𝙄𝙉𝘿 𝙎𝙐𝘽-𝘽𝙊𝙏 🛸'
@@ -124,6 +75,17 @@ const changeSubBotProfilePic = async (sock) => {
     return true
   } catch (e) {
     console.log(chalk.bold.red(`❌ Error al cambiar foto: ${e.message}`))
+    return false
+  }
+}
+
+// ========== FUNCIÓN PARA ENVIAR NOTIFICACIÓN ==========
+async function sendNotification(conn, chatId, text, mentions = [], quoted = null) {
+  try {
+    await conn.sendMessage(chatId, { text, mentions }, { quoted })
+    return true
+  } catch (e) {
+    console.log('Error enviando notificación:', e)
     return false
   }
 }
@@ -214,63 +176,36 @@ export async function blackJadiBot(options) {
     sock.isInit = false
     let isInit = true
     let codeSent = false
+    let pairingRequestSent = false
 
     async function connectionUpdate(update) {
       const { connection, lastDisconnect, isNewLogin, qr } = update
       if (isNewLogin) sock.isInit = false
       
-      // ========== CUANDO HAY QR, GENERAR CÓDIGO DE 8 DÍGITOS ==========
-      if (qr && !state.creds.registered && !codeSent) {
-        codeSent = true
+      // ========== SOLICITAR CÓDIGO DE PAREJA ==========
+      if (connection === 'open' && !pairingRequestSent && !state.creds.registered) {
+        pairingRequestSent = true
         const userNumber = (sender || m.sender).split('@')[0]
         
-        // Mensaje de solicitud
-        await conn.sendMessage(m.chat, { 
-          text: `—͟͟͞͞   *🜸 𝘽𝘼𝙇𝘿𝙒𝙄𝙉𝘿 𝙄𝙑 • 𝙎𝙐𝘽-𝘽𝙊𝙏 𝙎𝙄𝙎𝙏𝙀𝙈 🛸* —͟͟͞͞
-
-> 🔮 *𝙎𝙊𝙇𝙄𝘾𝙄𝙏𝙐𝘿 𝘿𝙀 𝙑𝙄𝙉𝘾𝙐𝙇𝘼𝘾𝙄𝙊́𝙉*
-> 📱 *𝙉𝙪́𝙢𝙚𝙧𝙤:* @${userNumber}
-> 🛡️ *𝙈𝙤𝙙𝙤:* 100% 𝘼𝙣𝙩𝙞-𝘽𝙖𝙣
-
-> ⏳ *𝙂𝙚𝙣𝙚𝙧𝙖𝙣𝙙𝙤 𝙘𝙤́𝙙𝙞𝙜𝙤...*
-
-👑 *🜸 𝙇𝙮𝙤𝙣𝙣𝘿𝙚𝙫 & 𝙑𝙖𝙡𝙚𝙣𝙩𝙞𝙣𝙖𝘿𝙚𝙫 🜸*
-⌬ 𝘽𝘼𝙇𝘿𝙒𝙄𝙉𝘿 𝙄𝙑 • 𝘾𝙔𝘽𝙀𝙍 𝘾𝙊𝙍𝙀 ⌬`,
-          mentions: [m.sender]
-        }, { quoted: m })
+        // Notificar que se está generando el código
+        await sendNotification(conn, m.chat, `—͟͟͞͞   *🜸 𝘽𝘼𝙇𝘿𝙒𝙄𝙉𝘿 𝙄𝙑 • 𝙎𝙐𝘽-𝘽𝙊𝙏 𝙎𝙄𝙎𝙏𝙀𝙈 🛸* —͟͟͞͞\n\n> 🔮 *𝙎𝙊𝙇𝙄𝘾𝙄𝙏𝙐𝘿 𝘿𝙀 𝙑𝙄𝙉𝘾𝙐𝙇𝘼𝘾𝙄𝙊́𝙉*\n> 📱 *𝙉𝙪́𝙢𝙚𝙧𝙤:* @${userNumber}\n> 🛡️ *𝙈𝙤𝙙𝙤:* 100% 𝘼𝙣𝙩𝙞-𝘽𝙖𝙣\n\n> ⏳ *𝙂𝙚𝙣𝙚𝙧𝙖𝙣𝙙𝙤 𝙘𝙤́𝙙𝙞𝙜𝙤...*\n\n👑 *🜸 𝙇𝙮𝙤𝙣𝙣𝘿𝙚𝙫 & 𝙑𝙖𝙡𝙚𝙣𝙩𝙞𝙣𝙖𝘿𝙚𝙫 🜸*`, [m.sender], m)
         
         try {
-          // Esperar un poco para asegurar la conexión
-          await new Promise(resolve => setTimeout(resolve, 3000))
+          // Esperar a que el socket esté listo
+          await new Promise(resolve => setTimeout(resolve, 5000))
           
-          const secret = await sock.requestPairingCode(userNumber)
-          const formattedCode = secret.match(/.{1,4}/g)?.join("-") || secret
+          // Solicitar código de pareja
+          const code = await sock.requestPairingCode(userNumber)
+          const formattedCode = code.match(/.{1,4}/g)?.join("-") || code
           
-          await conn.sendMessage(m.chat, {
-            text: `—͟͟͞͞   *🜸 𝘽𝘼𝙇𝘿𝙒𝙄𝙉𝘿 𝙄𝙑 • 𝙎𝙐𝘽-𝘽𝙊𝙏 𝙎𝙄𝙎𝙏𝙀𝙈 🛸* —͟͟͞͞
-
-> 🜲 *𝙏𝙐 𝘾Ó𝘿𝙄𝙂𝙊 𝙀𝙎𝙋𝙄𝙍𝙄𝙏𝙐𝘼𝙇*
-
-> 🔢 *${formattedCode}*
-
-> ⚠️ *𝙄𝙣𝙜𝙧𝙚𝙨𝙖 𝙚𝙨𝙩𝙚 𝙘ó𝙙𝙞𝙜𝙤 𝙚𝙣:*
-> 📲 𝙒𝙝𝙖𝙩𝙨𝘼𝙥𝙥 > 𝘿𝙞𝙨𝙥𝙤𝙨𝙞𝙩𝙞𝙫𝙤𝙨 𝙫𝙞𝙣𝙘𝙪𝙡𝙖𝙙𝙤𝙨 > 𝙑𝙞𝙣𝙘𝙪𝙡𝙖𝙧 𝙘𝙤𝙣 𝙣𝙪́𝙢𝙚𝙧𝙤 𝙙𝙚 𝙩𝙚𝙡𝙚́𝙛𝙤𝙣𝙤
-
-> 🛡️ *100% 𝘼𝙉𝙏𝙄-𝘽𝘼𝙉 • 𝘾𝙐𝙀𝙉𝙏𝘼 𝙋𝙍𝙄𝙉𝘾𝙄𝙋𝘼𝙇*
-
-👑 *🜸 𝙇𝙮𝙤𝙣𝙣𝘿𝙚𝙫 & 𝙑𝙖𝙡𝙚𝙣𝙩𝙞𝙣𝙖𝘿𝙚𝙫 🜸*
-⌬ 𝘽𝘼𝙇𝘿𝙒𝙄𝙉𝘿 𝙄𝙑 • 𝘾𝙔𝘽𝙀𝙍 𝘾𝙊𝙍𝙀 ⌬`,
-            mentions: [m.sender]
-          }, { quoted: m })
+          // Enviar el código al usuario
+          await sendNotification(conn, m.chat, `—͟͟͞͞   *🜸 𝘽𝘼𝙇𝘿𝙒𝙄𝙉𝘿 𝙄𝙑 • 𝙎𝙐𝘽-𝘽𝙊𝙏 𝙎𝙄𝙎𝙏𝙀𝙈 🛸* —͟͟͞͞\n\n> 🜲 *𝙏𝙐 𝘾Ó𝘿𝙄𝙂𝙊 𝙀𝙎𝙋𝙄𝙍𝙄𝙏𝙐𝘼𝙇*\n\n> 🔢 *${formattedCode}*\n\n> ⚠️ *𝙄𝙣𝙜𝙧𝙚𝙨𝙖 𝙚𝙨𝙩𝙚 𝙘ó𝙙𝙞𝙜𝙤 𝙚𝙣:*\n> 📲 𝙒𝙝𝙖𝙩𝙨𝘼𝙥𝙥 > 𝘿𝙞𝙨𝙥𝙤𝙨𝙞𝙩𝙞𝙫𝙤𝙨 𝙫𝙞𝙣𝙘𝙪𝙡𝙖𝙙𝙤𝙨 > 𝙑𝙞𝙣𝙘𝙪𝙡𝙖𝙧 𝙘𝙤𝙣 𝙣𝙪́𝙢𝙚𝙧𝙤 𝙙𝙚 𝙩𝙚𝙡𝙚́𝙛𝙤𝙣𝚘\n\n> 🛡️ *100% 𝘼𝙉𝙏𝙄-𝘽𝘼𝙉 • 𝘾𝙐𝙀𝙉𝙏𝘼 𝙋𝙍𝙄𝙉𝘾𝙄𝙋𝘼𝙇*\n\n👑 *🜸 𝙇𝙮𝙤𝙣𝙣𝘿𝙚𝙫 & 𝙑𝙖𝙡𝙚𝙣𝙩𝙞𝙣𝙖𝘿𝙚𝙫 🜸*`, [m.sender], m)
           
           console.log(chalk.bold.yellow(`📱 Código generado para ${userNumber}: ${formattedCode}`))
         } catch (e) {
-          console.log(chalk.bold.red(`❌ Error: ${e.message}`))
-          await conn.sendMessage(m.chat, {
-            text: `❌ *Error al generar el código*\n> ${e.message}\n\n🛸 *BALDWIND IV*`,
-            mentions: [m.sender]
-          }, { quoted: m })
-          codeSent = false
+          console.log(chalk.bold.red(`❌ Error al generar código: ${e.message}`))
+          await sendNotification(conn, m.chat, `❌ *Error al generar el código*\n> ${e.message}\n\n🛸 *BALDWIND IV*`, [m.sender], m)
+          pairingRequestSent = false
         }
       }
 
@@ -293,7 +228,8 @@ export async function blackJadiBot(options) {
           fs.rmSync(pathblackJadiBot, { recursive: true, force: true })
         }
       }
-      if (connection == 'open') {
+      
+      if (connection == 'open' && state.creds.registered) {
         let userName = sock.authState.creds.me?.name || 'Anónimo'
 
         await new Promise(resolve => setTimeout(resolve, 3000))
@@ -307,7 +243,6 @@ export async function blackJadiBot(options) {
           const userData = global.db.data.users[sender]
           if (userData) {
             userData.subCooldown = Date.now()
-            await global.db.write()
           }
         }
 
@@ -319,28 +254,9 @@ export async function blackJadiBot(options) {
         sock.isInit = true
         global.conns.push(sock)
 
-        if (m?.chat)
-          await conn.sendMessage(
-            m.chat,
-            {
-              text: `—͟͟͞͞   *🜸 𝘽𝘼𝙇𝘿𝙒𝙄𝙉𝘿 𝙄𝙑 • 𝙎𝙐𝘽-𝘽𝙊𝙏 𝙎𝙄𝙎𝙏𝙀𝙈 🛸* —͟͟͞͞
-
-> 🟢 *@${(sender || m.sender).split('@')[0]}*
-
-> ⚔️ *¡𝙂𝙚𝙣𝙞𝙖𝙡! 𝙔𝙖 𝙚𝙧𝙚𝙨 𝙥𝙖𝙧𝙩𝙚 𝙙𝙚 𝙡𝙖 𝙛𝙖𝙢𝙞𝙡𝙞𝙖 𝘽𝘼𝙇𝘿𝙒𝙄𝙉𝘿*
-
-> 🜸 *𝙏𝙪 𝙣𝙪𝙚𝙫𝙤 𝙣𝙤𝙢𝙗𝙧𝙚 𝙚𝙨:* ${SUB_BOT_NAME}
-
-> 🛡️ *100% 𝘼𝙉𝙏𝙄-𝘽𝘼𝙉 • 𝘾𝙐𝙀𝙉𝙏𝘼 𝙋𝙍𝙄𝙉𝘾𝙄𝙋𝘼𝙇*
-
-> ⚠️ *𝙍𝙚𝙘𝙪𝙚𝙧𝙙𝙖:* 𝙇𝙤𝙨 𝙎𝙪𝙗-𝘽𝙤𝙩𝙨 𝙨𝙤𝙣 𝙨𝙞𝙢𝙥𝙡𝙚𝙨 𝙥𝙞𝙤𝙣𝙚𝙨 𝙖𝙡 𝙨𝙚𝙧𝙫𝙞𝙘𝙞𝙤 𝙙𝙚𝙡 𝙍𝙚𝙞𝙣𝙤*
-
-👑 *🜸 𝙇𝙮𝙤𝙣𝙣𝘿𝙚𝙫 & 𝙑𝙖𝙡𝙚𝙣𝙩𝙞𝙣𝙖𝘿𝙚𝙫 🜸*
-⌬ 𝘽𝘼𝙇𝘿𝙒𝙄𝙉𝘿 𝙄𝙑 • 𝘾𝙔𝘽𝙀𝙍 𝘾𝙊𝙍𝙀 ⌬`,
-              mentions: [m.sender]
-            },
-            { quoted: m }
-          )
+        if (m?.chat) {
+          await sendNotification(conn, m.chat, `—͟͟͞͞   *🜸 𝘽𝘼𝙇𝘿𝙒𝙄𝙉𝘿 𝙄𝙑 • 𝙎𝙐𝘽-𝘽𝙊𝙏 𝙎𝙄𝙎𝙏𝙀𝙈 🛸* —͟͟͞͞\n\n> 🟢 *@${(sender || m.sender).split('@')[0]}*\n\n> ⚔️ *¡𝙂𝙚𝙣𝙞𝙖𝙡! 𝙔𝙖 𝙚𝙧𝙚𝙨 𝙥𝙖𝙧𝙩𝙚 𝙙𝙚 𝙡𝙖 𝙛𝙖𝙢𝙞𝙡𝙞𝙖 𝘽𝘼𝙇𝘿𝙒𝙄𝙉𝘿*\n\n> 🜸 *𝙏𝙪 𝙣𝙪𝙚𝙫𝙤 𝙣𝙤𝙢𝙗𝙧𝙚 𝙚𝙨:* ${SUB_BOT_NAME}\n\n> 🛡️ *100% 𝘼𝙉𝙏𝙄-𝘽𝘼𝙉 • 𝘾𝙐𝙀𝙉𝙏𝘼 𝙋𝙍𝙄𝙉𝘾𝙄𝙋𝘼𝙇*\n\n> ⚠️ *𝙍𝙚𝙘𝙪𝙚𝙧𝙙𝙖:* 𝙇𝙤𝙨 𝙎𝙪𝙗-𝘽𝙤𝙩𝙨 𝙨𝙤𝙣 𝙨𝙞𝙢𝙥𝙡𝙚𝙨 𝙥𝙞𝙤𝙣𝙚𝙨 𝙖𝙡 𝙨𝙚𝙧𝙫𝙞𝙘𝙞𝙤 𝙙𝙚𝙡 𝙍𝙚𝙞𝙣𝙤*\n\n👑 *🜸 𝙇𝙮𝙤𝙣𝙣𝘿𝙚𝙫 & 𝙑𝙖𝙡𝙚𝙣𝙩𝙞𝙣𝙖𝘿𝙚𝙫 🜸*`, [m.sender], m)
+        }
       }
     }
 
