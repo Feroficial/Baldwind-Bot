@@ -6,24 +6,18 @@ import fetch from 'node-fetch'
 const charset = { a:'ᴀ',b:'ʙ',c:'ᴄ',d:'ᴅ',e:'ᴇ',f:'ꜰ',g:'ɢ',h:'ʜ',i:'ɪ',j:'ᴊ',k:'ᴋ',l:'ʟ',m:'ᴍ',n:'ɴ',o:'ᴏ',p:'ᴘ',q:'ǫ',r:'ʀ',s:'ꜱ',t:'ᴛ',u:'ᴜ',v:'ᴠ',w:'ᴡ',x:'x',y:'ʏ',z:'ᴢ' }
 const textCyberpunk = t => t.toLowerCase().replace(/[a-z]/g, c => charset[c])
 
-// ========== DETECCIÓN DE SUB-BOT ==========
+// ========= DETECCIÓN SUBBOT =========
 const isSubBot = (conn) => {
-  if (global.conns && Array.isArray(global.conns)) {
-    return global.conns.some(bot => bot.user?.jid === conn.user?.jid)
-  }
-  return false
+  return global.conns?.some(bot => bot.user?.jid === conn.user?.jid)
 }
 
 const getBotTypeText = (conn) => {
-  const subBot = isSubBot(conn)
-  if (subBot) {
-    return { icon: '🜸', name: 'ꜱᴜʙ-ʙᴏᴛ', status: '🟣 ᴇꜱᴛᴀᴅᴏ: ᴀᴄᴛɪᴠᴏ ᴄᴏᴍᴏ ꜱᴜʙ-ʙᴏᴛ' }
-  } else {
-    return { icon: '👑', name: 'ʙᴏᴛ ᴘʀɪɴᴄɪᴘᴀʟ', status: '🔴 ᴇꜱᴛᴀᴅᴏ: ɴᴜ́ᴄʟᴇᴏ ᴘʀɪɴᴄɪᴘᴀʟ' }
-  }
+  return isSubBot(conn)
+    ? { icon: '🜸', name: 'ꜱᴜʙ-ʙᴏᴛ', status: '🟣 ᴀᴄᴛɪᴠᴏ ᴄᴏᴍᴏ ꜱᴜʙ-ʙᴏᴛ' }
+    : { icon: '👑', name: 'ʙᴏᴛ ᴘʀɪɴᴄɪᴘᴀʟ', status: '🔴 ɴᴜ́ᴄʟᴇᴏ ᴘʀɪɴᴄɪᴘᴀʟ' }
 }
 
-// ===== MENÚ MODIFICADO 💖 =====
+// ========= MENÚ =========
 const defaultMenu = {
   before: `
 —͟͟͞͞   *🜸 ʙᴀʟᴅᴡɪɴᴅ ɪᴠ  🛸  ᴄʏʙᴇʀ ᴄᴏʀᴇ  🜸* »
@@ -33,10 +27,10 @@ const defaultMenu = {
 > 👥 ᴜꜱᴜᴀʀɪᴏꜱ » %totalreg
 > 🤖 %botIcon *%botName*
 > 📌 %botStatus
-> 📊 ᴄᴏᴍᴀɴᴅᴏꜱ ᴛᴏᴛᴀʟᴇꜱ: %totalCmds
+> 📊 ᴄᴏᴍᴀɴᴅᴏꜱ: %totalCmds
 
-✦  𝗕𝗔𝗟𝗗𝗪𝗜𝗡𝗗 𝗜𝗩  •  𝗘𝗟𝗜𝗧𝗘 𝗠𝗘𝗡𝗨  ✦
-❤️  ᴄʀᴇᴀᴅᴏʀᴇꜱ: *˖°𓆩 LyonnDev 🫶🏻 ValentinaDev 𓆪°˖*
+✦ 𝗕𝗔𝗟𝗗𝗪𝗜𝗡𝗗 𝗜𝗩 • 𝗘𝗟𝗜𝗧𝗘 ✦
+❤️ ᴄʀᴇᴀᴅᴏʀᴇs: ✧ ʟʏᴏɴɴᴅᴇᴠ ❤️ ᴠᴀʟᴇɴᴛɪɴᴀᴅᴇᴠ ✧
 %readmore
 `.trimStart(),
 
@@ -44,9 +38,13 @@ const defaultMenu = {
   body: '> 🔖 %cmd',
   footer: '╰⋆꙳•❅‧*₊⋆꙳︎‧*❆₊⋆╯',
 
-  after: '\n⌬ ʙᴀʟᴅᴡɪɴᴅ ɪᴠ ᴄʏʙᴇʀ ᴍᴇɴᴜ 🧬\n❤️ ᴄᴏɴᴇᴄᴛᴀᴅᴏ ᴘᴏʀ: *LyonnDev 🫶🏻 ValentinaDev*'
+  after: `
+⌬ ʙᴀʟᴅᴡɪɴᴅ ɪᴠ 🧬
+❤️ ʟʏᴏɴɴᴅᴇᴠ × ᴠᴀʟᴇɴᴛɪɴᴀᴅᴇᴠ ❤️
+`.trim()
 }
 
+// ========= ARCHIVOS =========
 const menuDir = './media/menu'
 fs.mkdirSync(menuDir, { recursive: true })
 
@@ -64,7 +62,9 @@ const fetchBuffer = async url =>
 
 const defaultVideo = await fetchBuffer('https://files.catbox.moe/jbiz6v.mp4')
 
+// ========= HANDLER =========
 let handler = async (m, { conn, usedPrefix }) => {
+
   await conn.sendMessage(m.chat, { react: { text: '⚔️', key: m.key } })
 
   const botJid = conn.user.jid
@@ -75,28 +75,26 @@ let handler = async (m, { conn, usedPrefix }) => {
   const user = global.db.data.users[m.sender] || { level: 0, exp: 0 }
 
   let totalComandos = 0
-  let comandosPorTag = new Map()
-  
-  const help = Object.values(global.plugins || {})
-    .filter(p => !p.disabled)
-    .map(p => ({
-      help: [].concat(p.help || []),
-      tags: [].concat(p.tags || []),
-      prefix: 'customPrefix' in p
-    }))
+  let comandosPorTag = {}
 
-  for (const plugin of help) {
-    const cmdCount = plugin.help.length
-    totalComandos += cmdCount
-    for (const tag of plugin.tags) {
-      if (tag) {
-        if (!comandosPorTag.has(tag)) comandosPorTag.set(tag, 0)
-        comandosPorTag.set(tag, comandosPorTag.get(tag) + cmdCount)
-      }
+  const plugins = Object.values(global.plugins || {}).filter(p => !p.disabled)
+
+  for (const plugin of plugins) {
+    const cmds = [].concat(plugin.help || [])
+    const tags = [].concat(plugin.tags || [])
+
+    totalComandos += cmds.length
+
+    for (const tag of tags) {
+      if (!comandosPorTag[tag]) comandosPorTag[tag] = []
+      comandosPorTag[tag].push(...cmds)
     }
   }
 
-  const tagsMap = { main: 'ꜱɪꜱᴛᴇᴍᴀ', group: 'ɢʀᴜᴘᴏꜱ', serbot: 'ꜱᴜʙ ʙᴏᴛꜱ' }
+  const tagsMap = {}
+  for (const tag in comandosPorTag) {
+    tagsMap[tag] = textCyberpunk(tag)
+  }
 
   const replace = {
     name: await conn.getName(m.sender),
@@ -112,21 +110,18 @@ let handler = async (m, { conn, usedPrefix }) => {
 
   let text = menu.before
 
-  for (const tag of Object.keys(tagsMap)) {
-    const cmds = help
-      .filter(p => p.tags && p.tags.includes(tag))
-      .flatMap(p => p.help.map(c => menu.body.replace('%cmd', p.prefix ? c : usedPrefix + c)))
+  for (const tag in comandosPorTag) {
+    const cmds = comandosPorTag[tag]
+      .map(cmd => menu.body.replace('%cmd', usedPrefix + cmd))
       .join('\n')
-    if (cmds) {
-      const cmdCount = comandosPorTag.get(tag) || 0
-      text += `\n${menu.header.replace('%category', `${tagsMap[tag]} (${cmdCount} comandos)`)}\n${cmds}\n${menu.footer}`
-    }
+
+    text += `\n${menu.header.replace('%category', `${tagsMap[tag]} (${comandosPorTag[tag].length})`)}\n${cmds}\n${menu.footer}`
   }
 
   text += `\n${menu.after}`
-  
-  for (const [key, value] of Object.entries(replace)) {
-    text = text.replace(new RegExp(`%${key}`, 'g'), value)
+
+  for (const key in replace) {
+    text = text.replace(new RegExp(`%${key}`, 'g'), replace[key])
   }
 
   const video = menuMedia.video && fs.existsSync(menuMedia.video)
@@ -136,27 +131,19 @@ let handler = async (m, { conn, usedPrefix }) => {
   await conn.sendMessage(m.chat, {
     video,
     gifPlayback: false,
-    caption: text,
-    footer: '🧠 ʙᴀʟᴅᴡɪɴᴅ ɪᴠ • ᴄʏʙᴇʀ ꜱʏꜱᴛᴇᴍ ☘️',
-    contextInfo: {
-      externalAdReply: {
-        title: 'ʙᴀʟᴅᴡɪɴᴅ ɪᴠ | ᴄʏʙᴇʀ ᴠᴇʀꜱɪᴏɴ',
-        body: '❤️ ᴄʀᴇᴀᴅᴏ ᴘᴏʀ • LyonnDev 🫶🏻 ValentinaDev',
-        thumbnail: null,
-        sourceUrl: 'https://github.com/Feroficial/Baldwind-IV-Bot.git',
-        mediaType: 1,
-        renderLargerThumbnail: true
-      }
-    }
+    caption: text
   }, { quoted: m })
 }
 
+// ========= CONFIG =========
 handler.help = ['menu', 'menú']
 handler.tags = ['main']
 handler.command = ['menu', 'menú', 'help', 'ayuda']
 handler.register = false
+
 export default handler
 
+// ========= TIEMPO =========
 const clockString = ms =>
   [3600000, 60000, 1000].map((v, i) =>
     String(Math.floor(ms / v) % (i ? 60 : 99)).padStart(2, '0')
