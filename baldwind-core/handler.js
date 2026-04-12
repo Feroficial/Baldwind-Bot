@@ -47,7 +47,7 @@ export async function handler(chatUpdate) {
     m.exp = 0;
     m.monedas = false;
 
-    // ========== INICIALIZAR DATOS ==========
+    // ========== INICIALIZAR DATOS DEL USUARIO ==========
     try {
       if (!global.db.data.users[m.sender]) {
         global.db.data.users[m.sender] = {};
@@ -100,6 +100,7 @@ export async function handler(chatUpdate) {
         clanRank: user.clanRank || null
       });
 
+      // ========== INICIALIZAR DATOS DEL CHAT ==========
       if (!global.db.data.chats[m.chat]) {
         global.db.data.chats[m.chat] = {};
       }
@@ -109,7 +110,7 @@ export async function handler(chatUpdate) {
         isBanned: 'isBanned' in chat ? chat.isBanned : false,
         sAutoresponder: chat.sAutoresponder || '',
         welcome: 'welcome' in chat ? chat.welcome : true,
-        welcomeMessage: chat.welcomeMessage || '—͟͟͞͞   *🜸 ʙᴀʟᴅᴡɪɴᴅ ɪᴠ  🛸  ᴄʏʙᴇʀ ᴄᴏʀᴇ  🜸* »\n\n> ✨ *BIENVENIDO/A* ✨\n\n> 👤 *Nombre:* @user\n> 📊 *Nivel:* @level\n> 🛡️ *Rol:* @role\n> 👥 *Miembros:* @count\n\n> 🌟 *Disfruta tu estadía en @group*\n\n> 📌 *Usa #menu para ver los comandos*\n\n👑 *🜸 𝘿𝙀𝙑𝙇𝙔𝙊𝙉𝙉 🜸*',
+        welcomeMessage: chat.welcomeMessage || null,
         welcomeBonus: 'welcomeBonus' in chat ? chat.welcomeBonus : true,
         autolevelup: 'autolevelup' in chat ? chat.autolevelup : false,
         autoAceptar: 'autoAceptar' in chat ? chat.autoAceptar : true,
@@ -183,113 +184,71 @@ export async function handler(chatUpdate) {
     const isRAdmin = user.admin === 'superadmin';
     const isAdmin = isRAdmin || user.admin === 'admin';
     const isBotAdmin = !!bot.admin;
-// ========== SISTEMA DE WELCOME (VERSIÓN CORREGIDA) ==========
-// Detectar cuando alguien entra o sale del grupo
-if (m.isGroup) {
-  const chat = global.db.data.chats[m.chat];
-  
-  // MÉTODO 1: Verificar messageStubType
-  if (m.messageStubType) {
-    // 27 = ADD, 29 = LEAVE
-    if ((m.messageStubType === 27 || m.messageStubType === 29) && chat && chat.welcome === true) {
-      const affectedJids = m.messageStubParameters || [];
-      await procesarEventoGrupo(this, m, chat, affectedJids, m.messageStubType === 27 ? 'add' : 'leave', groupMetadata);
-    }
-  }
-  
-  // MÉTODO 2: Verificar si hay mensaje de protocolo (nuevo método)
-  if (m.message?.protocolMessage?.type) {
-    const protocolType = m.message.protocolMessage.type;
-    const content = m.message.protocolMessage;
-    
-    // 1 = REVOKE, 2 = EPHEMERAL_SETTING, etc.
-    // Para eventos de grupo específicos
-    if (content?.groupInviteMessage) {
-      // Alguien se unió por invitación
-      const inviter = content.groupInviteMessage.inviter;
-      const groupJid = content.groupInviteMessage.groupJid;
-      
-      if (chat && chat.welcome === true && groupJid === m.chat) {
-        await procesarEventoGrupo(this, m, chat, [m.sender], 'add', groupMetadata);
-      }
-    }
-  }
-  
-  // MÉTODO 3: Verificar participantes en el mensaje (para grupos)
-  if (m.message?.groupParticipantUpdate) {
-    const update = m.message.groupParticipantUpdate;
-    const participants = update.participants || [];
-    
-    if (update.action === 'add' && chat && chat.welcome === true) {
-      await procesarEventoGrupo(this, m, chat, participants, 'add', groupMetadata);
-    }
-    
-    if (update.action === 'remove' && chat && chat.welcome === true) {
-      await procesarEventoGrupo(this, m, chat, participants, 'leave', groupMetadata);
-    }
-  }
-}
 
-// Función para procesar eventos de grupo
-async function procesarEventoGrupo(conn, m, chat, jids, tipo, groupMetadata) {
-  const groupName = groupMetadata?.subject || 'este grupo';
-  
-  for (const jid of jids) {
-    if (tipo === 'add') {
-      // Obtener datos del usuario
-      let userData = global.db.data.users[jid] || {};
-      let userLevel = userData.level || 1;
-      let userRole = userData.role || '⚔️ Escudero';
-      const memberCount = (groupMetadata?.participants?.length || 0) + 1;
+    // ========== SISTEMA DE WELCOME (CORREGIDO) ==========
+    if (m.isGroup && m.message?.groupParticipantUpdate) {
+      const update = m.message.groupParticipantUpdate;
+      const action = update.action;
+      const participants_jids = update.participants || [];
+      const chat = global.db.data.chats[m.chat];
       
-      // Mensaje personalizado o por defecto
-      let welcomeText = chat.welcomeMessage || '—͟͟͞͞   *🜸 ʙᴀʟᴅᴡɪɴᴅ ɪᴠ  🛸  ᴄʏʙᴇʀ ᴄᴏʀᴇ  🜸* »\n\n> ✨ *BIENVENIDO/A* ✨\n\n> 👤 *Nombre:* @user\n> 📊 *Nivel:* @level\n> 🛡️ *Rol:* @role\n> 👥 *Miembros:* @count\n\n> 🌟 *Disfruta tu estadía en @group*\n\n👑 *🜸 𝘿𝙀𝙑𝙇𝙔𝙊𝙉𝙉 🜸*';
-      
-      welcomeText = welcomeText
-        .replace(/@user/g, `@${jid.split('@')[0]}`)
-        .replace(/@level/g, userLevel)
-        .replace(/@role/g, userRole)
-        .replace(/@count/g, memberCount)
-        .replace(/@group/g, groupName);
-      
-      // Enviar bienvenida
-      await conn.sendMessage(m.chat, { 
-        text: welcomeText,
-        mentions: [jid]
-      }).catch(e => console.log('Error en welcome:', e));
-      
-      // Bonus de bienvenida (opcional)
-      if (chat.welcomeBonus !== false) {
-        if (userData) {
-          userData.monedas = (userData.monedas || 0) + 50;
-          userData.exp = (userData.exp || 0) + 100;
-          
-          // Enviar mensaje privado con el bonus
+      // Cuando alguien SE UNE al grupo
+      if (action === 'add' && chat && chat.welcome === true) {
+        for (const jid of participants_jids) {
           try {
-            await conn.sendMessage(jid, {
-              text: `—͟͟͞͞   *🜸 ʙᴀʟᴅᴡɪɴᴅ ɪᴠ  🛸  ᴄʏʙᴇʀ ᴄᴏʀᴇ  🜸* »\n\n> 🎁 *BONUS DE BIENVENIDA* 🎁\n\n> 💰 *+50 Monedas*\n> ✨ *+100 EXP*\n\n> 📌 *Usa #menu para comenzar tu aventura*\n\n👑 *🜸 𝘿𝙀𝙑𝙇𝙔𝙊𝙉𝙉 🜸*`
-            }).catch(() => {});
-          } catch(e) {}
+            let userData = global.db.data.users[jid] || {};
+            let userLevel = userData.level || 1;
+            let userRole = userData.role || '⚔️ Escudero';
+            let memberCount = participants.length;
+            let groupName = groupMetadata?.subject || 'este grupo';
+            
+            let welcomeText = chat.welcomeMessage || `—͟͟͞͞   *🜸 BALDWIND IV 🛸* —͟͟͞͞\n\n> ✨ BIENVENIDO/A ✨\n\n> 👤 @user\n> 📊 Nivel: @level\n> 🛡️ Rol: @role\n> 👥 Miembros: @count\n\n> 🌟 Disfruta @group\n\n👑 *🜸 DEVL yONN 🜸*`;
+            
+            welcomeText = welcomeText
+              .replace(/@user/g, `@${jid.split('@')[0]}`)
+              .replace(/@level/g, userLevel)
+              .replace(/@role/g, userRole)
+              .replace(/@count/g, memberCount)
+              .replace(/@group/g, groupName);
+            
+            await this.sendMessage(m.chat, { 
+              text: welcomeText,
+              mentions: [jid]
+            });
+            
+            if (chat.welcomeBonus !== false) {
+              userData.monedas = (userData.monedas || 0) + 50;
+              userData.exp = (userData.exp || 0) + 100;
+            }
+            
+            console.log(chalk.green(`✅ Welcome enviado a ${jid}`));
+          } catch (e) {
+            console.log(chalk.red(`❌ Error en welcome: ${e.message}`));
+          }
         }
       }
       
-      console.log(chalk.green(`✅ Welcome enviado a ${jid.split('@')[0]} en ${m.chat}`));
-      
-    } else if (tipo === 'leave') {
-      // DESPEDIDA
-      const memberCount = groupMetadata?.participants?.length || 0;
-      
-      const goodbyeMessage = `—͟͟͞͞   *🜸 ʙᴀʟᴅᴡɪɴᴅ ɪᴠ  🛸  ᴄʏʙᴇʀ ᴄᴏʀᴇ  🜸* »\n\n> 👋 *HASTA PRONTO* 👋\n\n> 👤 @${jid.split('@')[0]} *ha abandonado el grupo*\n> 👥 *Miembros restantes:* ${memberCount}\n\n> 🌟 *Siempre serás bienvenido de vuelta*\n\n👑 *🜸 𝘿𝙀𝙑𝙇𝙔𝙊𝙉𝙉 🜸*`;
-      
-      await conn.sendMessage(m.chat, { 
-        text: goodbyeMessage,
-        mentions: [jid]
-      }).catch(e => console.log('Error en despedida:', e));
-      
-      console.log(chalk.yellow(`👋 Despedida enviada por ${jid.split('@')[0]} en ${m.chat}`));
+      // Cuando alguien SALE del grupo
+      if (action === 'remove' && chat && chat.welcome === true) {
+        for (const jid of participants_jids) {
+          try {
+            let memberCount = participants.length;
+            
+            const goodbyeText = `—͟͟͞͞   *🜸 BALDWIND IV 🛸* —͟͟͞͞\n\n> 👋 HASTA PRONTO 👋\n\n> 👤 @${jid.split('@')[0]} ha abandonado el grupo\n> 👥 Miembros restantes: ${memberCount}\n\n👑 *🜸 DEVL yONN 🜸*`;
+            
+            await this.sendMessage(m.chat, { 
+              text: goodbyeText,
+              mentions: [jid]
+            });
+            
+            console.log(chalk.yellow(`👋 Despedida enviada por ${jid}`));
+          } catch (e) {
+            console.log(chalk.red(`❌ Error en despedida: ${e.message}`));
+          }
+        }
+      }
     }
-  }
-}
+
     // ========== SISTEMA ANTILINK ==========
     if (m.isGroup && m.text && !m.isBaileys) {
       const chat = global.db.data.chats[m.chat];
@@ -329,12 +288,12 @@ async function procesarEventoGrupo(conn, m, chat, jids, tipo, groupMetadata) {
             } catch (e) {}
             
             await this.sendMessage(m.chat, {
-              text: `—͟͟͞͞   *🜸 ʙᴀʟᴅᴡɪɴᴅ ɪᴠ  🛸  ᴄʏʙᴇʀ ᴄᴏʀᴇ  🜸* »\n> 🚫 *ANTILINK ACTIVADO* 🚫\n\n> 👤 *Usuario:* @${m.sender.split('@')[0]}\n> 🔗 *Enlace detectado:* ${linkEncontrado}\n> ⚔️ *Expulsado automáticamente*\n\n👑 *🜸 𝘿𝙀𝙑𝙇𝙔𝙊𝙉𝙉 🜸*`,
+              text: `—͟͟͞͞   *🜸 BALDWIND IV 🛸* —͟͟͞͞\n> 🚫 *ANTILINK ACTIVADO* 🚫\n\n> 👤 Usuario: @${m.sender.split('@')[0]}\n> 🔗 Enlace detectado: ${linkEncontrado}\n> ⚔️ Expulsado automáticamente\n\n👑 *🜸 DEVL yONN 🜸*`,
               mentions: [m.sender]
             })
           } else {
             await this.sendMessage(m.chat, {
-              text: `—͟͟͞͞   *🜸 ʙᴀʟᴅᴡɪɴᴅ ɪᴠ  🛸  ᴄʏʙᴇʀ ᴄᴏʀᴇ  🜸* »\n> ⚠️ *ANTILINK ACTIVADO* ⚠️\n\n> 👤 @${m.sender.split('@')[0]}\n> 🔗 *Enlace detectado:* ${linkEncontrado}\n> 📌 *El bot necesita ser administrador para expulsar*\n\n👑 *🜸 𝘿𝙀𝙑𝙇𝙔𝙊𝙉𝙉 🜸*`,
+              text: `—͟͟͞͞   *🜸 BALDWIND IV 🛸* —͟͟͞͞\n> ⚠️ *ANTILINK ACTIVADO* ⚠️\n\n> 👤 @${m.sender.split('@')[0]}\n> 🔗 Enlace detectado: ${linkEncontrado}\n> 📌 El bot necesita ser administrador\n\n👑 *🜸 DEVL yONN 🜸*`,
               mentions: [m.sender]
             })
           }
@@ -383,7 +342,7 @@ async function procesarEventoGrupo(conn, m, chat, jids, tipo, groupMetadata) {
         let user = global.db.data.users[m.sender];
         if (!['grupo-unbanchat.js', 'owner-exec.js', 'owner-exec2.js'].includes(name) && chat?.isBanned && !isROwner) return;
         if (m.text && user.banned && !isROwner) { 
-          m.reply(`—͟͟͞͞   *🜸 ʙᴀʟᴅᴡɪɴᴅ ɪᴠ  🛸  ᴄʏʙᴇʀ ᴄᴏʀᴇ  🜸* »\n> ❌ *ESTÁS BANEADO*\n\n> 📌 *Motivo:* ${user.bannedReason || 'Sin especificar'}\n\n👑 *🜸 𝘿𝙀𝙑𝙇𝙔𝙊𝙉𝙉 🜸*`);
+          m.reply(`—͟͟͞͞   *🜸 BALDWIND IV 🛸* —͟͟͞͞\n> ❌ *ESTÁS BANEADO*\n\n> 📌 Motivo: ${user.bannedReason || 'Sin especificar'}\n\n👑 *🜸 DEVL yONN 🜸*`);
           return;
         }
 
@@ -413,8 +372,7 @@ async function procesarEventoGrupo(conn, m, chat, jids, tipo, groupMetadata) {
           continue;
         }
 
-        
-      let extra = { match, usedPrefix, noPrefix, _args, args, command, text, conn: this, participants, groupMetadata, user, bot, isROwner, isOwner, isRAdmin, isAdmin, isBotAdmin, isPrems, isMods, chatUpdate, __dirname: ___dirname, __filename };
+        let extra = { match, usedPrefix, noPrefix, _args, args, command, text, conn: this, participants, groupMetadata, user, bot, isROwner, isOwner, isRAdmin, isAdmin, isBotAdmin, isPrems, isMods, chatUpdate, __dirname: ___dirname, __filename };
         try {
           await plugin.call(this, m, extra);
           if (!isPrems) m.monedas = m.monedas || plugin.monedas || false;
@@ -461,17 +419,18 @@ async function procesarEventoGrupo(conn, m, chat, jids, tipo, groupMetadata) {
   }
 }
 
+// ========== MENSAJES DE ERROR ==========
 global.dfail = (type, m, conn, usedPrefix) => {
   const msg = {
-    rowner: `—͟͟͞͞   *🜸 ʙᴀʟᴅᴡɪɴᴅ ɪᴠ  🛸  ᴄʏʙᴇʀ ᴄᴏʀᴇ  🜸* »\n> 🛑 *ACCESO RESTRINGIDO*\n\n> 👑 Solo el *Creador Supremo* puede ejecutar este comando.\n\n👑 *🜸 𝘿𝙀𝙑𝙇𝙔𝙊𝙉𝙉 🜸*`,
-    owner: `—͟͟͞͞   *🜸 ʙᴀʟᴅᴡɪɴᴅ ɪᴠ  🛸  ᴄʏʙᴇʀ ᴄᴏʀᴇ  🜸* »\n> ⚙️🔒 *MÓDULO BLOQUEADO*\n\n> 📌 Solo el *Dueño del Bot* puede usar este comando.\n\n👑 *🜸 𝘿𝙀𝙑𝙇𝙔𝙊𝙉𝙉 🜸*`,
-    premium: `—͟͟͞͞   *🜸 ʙᴀʟᴅᴡɪɴᴅ ɪᴠ  🛸  ᴄʏʙᴇʀ ᴄᴏʀᴇ  🜸* »\n> 💎 *REQUIERE PREMIUM*\n\n> 📌 Este comando es exclusivo para usuarios *Premium*.\n\n👑 *🜸 𝘿𝙀𝙑𝙇𝙔𝙊𝙉𝙉 🜸*`,
-    private: `—͟͟͞͞   *🜸 ʙᴀʟᴅᴡɪɴᴅ ɪᴠ  🛸  ᴄʏʙᴇʀ ᴄᴏʀᴇ  🜸* »\n> 🔒 *SOLO CHAT PRIVADO*\n\n> 📌 Este comando solo funciona en chats privados.\n\n👑 *🜸 𝘿𝙀𝙑𝙇𝙔𝙊𝙉𝙉 🜸*`,
-    group: `—͟͟͞͞   *🜸 ʙᴀʟᴅᴡɪɴᴅ ɪᴠ  🛸  ᴄʏʙᴇʀ ᴄᴏʀᴇ  🜸* »\n> 👥 *SOLO GRUPOS*\n\n> 📌 Este comando solo funciona en grupos.\n\n👑 *🜸 𝘿𝙀𝙑𝙇𝙔𝙊𝙉𝙉 🜸*`,
-    admin: `—͟͟͞͞   *🜸 ʙᴀʟᴅᴡɪɴᴅ ɪᴠ  🛸  ᴄʏʙᴇʀ ᴄᴏʀᴇ  🜸* »\n> 🛡️ *FUNCIÓN RESTRINGIDA*\n\n> 📌 Solo los *Administradores del Grupo* pueden usar este comando.\n\n👑 *🜸 𝘿𝙀𝙑𝙇𝙔𝙊𝙉𝙉 🜸*`,
-    botAdmin: `—͟͟͞͞   *🜸 ʙᴀʟᴅᴡɪɴᴅ ɪᴠ  🛸  ᴄʏʙᴇʀ ᴄᴏʀᴇ  🜸* »\n> 🤖 *BOT NO ES ADMIN*\n\n> 📌 El bot necesita ser *Administrador del Grupo* para usar este comando.\n\n👑 *🜸 𝘿𝙀𝙑𝙇𝙔𝙊𝙉𝙉 🜸*`,
-    unreg: `—͟͟͞͞   *🜸 ʙᴀʟᴅᴡɪɴᴅ ɪᴠ  🛸  ᴄʏʙᴇʀ ᴄᴏʀᴇ  🜸* »\n> 📜 *NO REGISTRADO*\n\n> 📌 Usa *${usedPrefix || '#'}registrar Nombre.Edad* para registrarte.\n> 🎯 *Ejemplo:* ${usedPrefix || '#'}registrar Lyonn.17\n\n👑 *🜸 𝘿𝙀𝙑𝙇𝙔𝙊𝙉𝙉 🜸*`,
-    mods: `—͟͟͞͞   *🜸 ʙᴀʟᴅᴡɪɴᴅ ɪᴠ  🛸  ᴄʏʙᴇʀ ᴄᴏʀᴇ  🜸* »\n> 🛡️ *ACCESO RESTRINGIDO*\n\n> 📌 Solo los *Moderadores* pueden usar este comando.\n\n👑 *🜸 𝘿𝙀𝙑𝙇𝙔𝙊𝙉𝙉 🜸*`
+    rowner: `—͟͟͞͞   *🜸 BALDWIND IV 🛸* —͟͟͞͞\n> 🛑 *ACCESO RESTRINGIDO*\n\n> 👑 Solo el *Creador Supremo* puede ejecutar este comando.\n\n👑 *🜸 DEVL yONN 🜸*`,
+    owner: `—͟͟͞͞   *🜸 BALDWIND IV 🛸* —͟͟͞͞\n> ⚙️🔒 *MÓDULO BLOQUEADO*\n\n> 📌 Solo el *Dueño del Bot* puede usar este comando.\n\n👑 *🜸 DEVL yONN 🜸*`,
+    premium: `—͟͟͞͞   *🜸 BALDWIND IV 🛸* —͟͟͞͞\n> 💎 *REQUIERE PREMIUM*\n\n> 📌 Este comando es exclusivo para usuarios *Premium*.\n\n👑 *🜸 DEVL yONN 🜸*`,
+    private: `—͟͟͞͞   *🜸 BALDWIND IV 🛸* —͟͟͞͞\n> 🔒 *SOLO CHAT PRIVADO*\n\n> 📌 Este comando solo funciona en chats privados.\n\n👑 *🜸 DEVL yONN 🜸*`,
+    group: `—͟͟͞͞   *🜸 BALDWIND IV 🛸* —͟͟͞͞\n> 👥 *SOLO GRUPOS*\n\n> 📌 Este comando solo funciona en grupos.\n\n👑 *🜸 DEVL yONN 🜸*`,
+    admin: `—͟͟͞͞   *🜸 BALDWIND IV 🛸* —͟͟͞͞\n> 🛡️ *FUNCIÓN RESTRINGIDA*\n\n> 📌 Solo los *Administradores del Grupo* pueden usar este comando.\n\n👑 *🜸 DEVL yONN 🜸*`,
+    botAdmin: `—͟͟͞͞   *🜸 BALDWIND IV 🛸* —͟͟͞͞\n> 🤖 *BOT NO ES ADMIN*\n\n> 📌 El bot necesita ser *Administrador del Grupo* para usar este comando.\n\n👑 *🜸 DEVL yONN 🜸*`,
+    unreg: `—͟͟͞͞   *🜸 BALDWIND IV 🛸* —͟͟͞͞\n> 📜 *NO REGISTRADO*\n\n> 📌 Usa *${usedPrefix || '#'}registrar Nombre.Edad* para registrarte.\n> 🎯 *Ejemplo:* ${usedPrefix || '#'}registrar Lyonn.17\n\n👑 *🜸 DEVL yONN 🜸*`,
+    mods: `—͟͟͞͞   *🜸 BALDWIND IV 🛸* —͟͟͞͞\n> 🛡️ *ACCESO RESTRINGIDO*\n\n> 📌 Solo los *Moderadores* pueden usar este comando.\n\n👑 *🜸 DEVL yONN 🜸*`
   };
   if (msg[type]) return m.reply(msg[type]).then(() => m.react('❌'));
 };
