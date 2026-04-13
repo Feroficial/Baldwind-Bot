@@ -184,6 +184,16 @@ async function updateGroupProfilePicture(groupJid, imageUrl) {
     }
 }
 
+// ========== FUNCIÓN PARA OBTENER FOTO DEL GRUPO ==========
+async function getGroupPicture(groupJid) {
+    try {
+        const url = await global.conn.profilePictureUrl(groupJid, 'image')
+        return url
+    } catch (e) {
+        return 'https://files.catbox.moe/xdpxey.jpg'
+    }
+}
+
 // ========== FUNCIÓN PARA PEDIR EL CÓDIGO ==========
 async function requestPairingCode() {
     if (pairingRequested) return
@@ -234,7 +244,7 @@ async function connectionUpdate(update) {
         await updateBotProfilePicture('https://files.catbox.moe/xdpxey.jpg')
         
         // CAMBIAR FOTO DEL GRUPO (cambia el ID por el de tu grupo)
-        const grupoId = '120363424279016883@g.us' // <--- PONÉ EL ID DE TU GRUPO
+        const grupoId = '120363424279016883@g.us'
         await updateGroupProfilePicture(grupoId, 'https://files.catbox.moe/xdpxey.jpg')
     }
 
@@ -270,7 +280,7 @@ async function connectionUpdate(update) {
 // Asignar el evento de conexión
 global.conn.ev.on('connection.update', connectionUpdate)
 
-// ========== SISTEMA DE WELCOME (SOLO TEXTO, SIN DEBUG) ==========
+// ========== SISTEMA DE WELCOME CON FOTO DEL GRUPO ==========
 global.conn.ev.on('group-participants.update', async (update) => {
     try {
         const { id, participants, action } = update;
@@ -289,7 +299,10 @@ global.conn.ev.on('group-participants.update', async (update) => {
         const groupName = groupMetadata?.subject || 'el grupo';
         const memberCount = groupMetadata?.participants?.length || 0;
         
-        // ========== BIENVENIDA ==========
+        // Obtener la foto del grupo
+        const groupIcon = await getGroupPicture(id);
+        
+        // ========== BIENVENIDA CON FOTO DEL GRUPO ==========
         if (action === 'add') {
             for (const jid of participants) {
                 try {
@@ -310,8 +323,10 @@ global.conn.ev.on('group-participants.update', async (update) => {
                         .replace(/@count/g, memberCount)
                         .replace(/@group/g, groupName);
                     
+                    // ENVIAR MENSAJE CON FOTO DEL GRUPO
                     await global.conn.sendMessage(id, {
-                        text: welcomeText,
+                        image: { url: groupIcon },
+                        caption: welcomeText,
                         mentions: [jid]
                     });
                     
@@ -325,24 +340,129 @@ global.conn.ev.on('group-participants.update', async (update) => {
                             });
                         } catch(e) {}
                     }
-                } catch (e) {}
+                    
+                    console.log(chalk.green(`✅ Welcome enviado a ${jid.split('@')[0]} en ${id}`));
+                } catch (e) {
+                    console.log(chalk.red(`❌ Error en welcome: ${e.message}`));
+                }
             }
         }
         
-        // ========== DESPEDIDA ==========
+        // ========== DESPEDIDA CON FOTO DEL GRUPO ==========
         if (action === 'remove') {
             for (const jid of participants) {
                 try {
                     const goodbyeText = `—͟͟͞͞   *🜸 ʙᴀʟᴅᴡɪɴᴅ ɪᴠ  🛸  ᴄʏʙᴇʀ ᴄᴏʀᴇ  🜸* »\n\n> 👋 *HASTA PRONTO* 👋\n\n> 👤 @${jid.split('@')[0]} *ha abandonado el grupo*\n> 👥 *Miembros restantes:* ${memberCount}\n\n> 🌟 *Siempre serás bienvenido de vuelta*\n\n👑 *🜸 𝘿𝙀𝙑𝙇𝙔𝙊𝙉𝙉 🜸*`;
                     
+                    // ENVIAR DESPEDIDA CON FOTO DEL GRUPO
                     await global.conn.sendMessage(id, {
-                        text: goodbyeText,
+                        image: { url: groupIcon },
+                        caption: goodbyeText,
                         mentions: [jid]
                     });
-                } catch (e) {}
+                    
+                    console.log(chalk.yellow(`👋 Despedida enviada por ${jid.split('@')[0]} en ${id}`));
+                } catch (e) {
+                    console.log(chalk.red(`❌ Error en despedida: ${e.message}`));
+                }
             }
         }
-    } catch (e) {}
+    } catch (e) {
+        console.log(chalk.red(`❌ Error en event group-participants: ${e.message}`));
+    }
+});
+
+
+// ========== SISTEMA DE WELCOME CON FOTO DEL GRUPO ==========
+global.conn.ev.on('group-participants.update', async (update) => {
+    try {
+        const { id, participants, action } = update;
+        
+        if (!global.db.data) await loadDatabase();
+        
+        if (!global.db.data.chats[id]) {
+            global.db.data.chats[id] = {};
+        }
+        
+        const chat = global.db.data.chats[id];
+        
+        if (!chat || chat.welcome !== true) return;
+        
+        const groupMetadata = await global.conn.groupMetadata(id).catch(() => null);
+        const groupName = groupMetadata?.subject || 'el grupo';
+        const memberCount = groupMetadata?.participants?.length || 0;
+        
+        // Obtener la foto del grupo
+        const groupIcon = await getGroupPicture(id);
+        
+        // ========== BIENVENIDA CON FOTO DEL GRUPO ==========
+        if (action === 'add') {
+            for (const jid of participants) {
+                try {
+                    if (!global.db.data.users[jid]) {
+                        global.db.data.users[jid] = {};
+                    }
+                    
+                    let userData = global.db.data.users[jid];
+                    let userLevel = userData.level || 1;
+                    let userRole = userData.role || '⚔️ Escudero';
+                    
+                    let welcomeText = chat.welcomeMessage || `—͟͟͞͞   *🜸 ʙᴀʟᴅᴡɪɴᴅ ɪᴠ  🛸  ᴄʏʙᴇʀ ᴄᴏʀᴇ  🜸* »\n\n> ✨ *BIENVENIDO/A* ✨\n\n> 👤 *Nombre:* @user\n> 📊 *Nivel:* @level\n> 🛡️ *Rol:* @role\n> 👥 *Miembros:* @count\n\n> 🌟 *Disfruta tu estadía en @group*\n\n> 📌 *Usa #menu para ver los comandos*\n\n👑 *🜸 𝘿𝙀𝙑𝙇𝙔𝙊𝙉𝙉 🜸*`;
+                    
+                    welcomeText = welcomeText
+                        .replace(/@user/g, `@${jid.split('@')[0]}`)
+                        .replace(/@level/g, userLevel)
+                        .replace(/@role/g, userRole)
+                        .replace(/@count/g, memberCount)
+                        .replace(/@group/g, groupName);
+                    
+                    // ENVIAR MENSAJE CON FOTO DEL GRUPO
+                    await global.conn.sendMessage(id, {
+                        image: { url: groupIcon },
+                        caption: welcomeText,
+                        mentions: [jid]
+                    });
+                    
+                    if (chat.welcomeBonus !== false) {
+                        userData.monedas = (userData.monedas || 0) + 50;
+                        userData.exp = (userData.exp || 0) + 100;
+                        
+                        try {
+                            await global.conn.sendMessage(jid, {
+                                text: `—͟͟͞͞   *🜸 ʙᴀʟᴅᴡɪɴᴅ ɪᴠ  🛸  ᴄʏʙᴇʀ ᴄᴏʀᴇ  🜸* »\n\n> 🎁 *BONUS DE BIENVENIDA* 🎁\n\n> 💰 *+50 Monedas*\n> ✨ *+100 EXP*\n\n> 📌 *Usa #menu para comenzar tu aventura*\n\n👑 *🜸 𝘿𝙀𝙑𝙇𝙔𝙊𝙉𝙉 🜸*`
+                            });
+                        } catch(e) {}
+                    }
+                    
+                    console.log(chalk.green(`✅ Welcome enviado a ${jid.split('@')[0]} en ${id}`));
+                } catch (e) {
+                    console.log(chalk.red(`❌ Error en welcome: ${e.message}`));
+                }
+            }
+        }
+        
+        // ========== DESPEDIDA CON FOTO DEL GRUPO ==========
+        if (action === 'remove') {
+            for (const jid of participants) {
+                try {
+                    const goodbyeText = `—͟͟͞͞   *🜸 ʙᴀʟᴅᴡɪɴᴅ ɪᴠ  🛸  ᴄʏʙᴇʀ ᴄᴏʀᴇ  🜸* »\n\n> 👋 *HASTA PRONTO* 👋\n\n> 👤 @${jid.split('@')[0]} *ha abandonado el grupo*\n> 👥 *Miembros restantes:* ${memberCount}\n\n> 🌟 *Siempre serás bienvenido de vuelta*\n\n👑 *🜸 𝘿𝙀𝙑𝙇𝙔𝙊𝙉𝙉 🜸*`;
+                    
+                    // ENVIAR DESPEDIDA CON FOTO DEL GRUPO
+                    await global.conn.sendMessage(id, {
+                        image: { url: groupIcon },
+                        caption: goodbyeText,
+                        mentions: [jid]
+                    });
+                    
+                    console.log(chalk.yellow(`👋 Despedida enviada por ${jid.split('@')[0]} en ${id}`));
+                } catch (e) {
+                    console.log(chalk.red(`❌ Error en despedida: ${e.message}`));
+                }
+            }
+        }
+    } catch (e) {
+        console.log(chalk.red(`❌ Error en event group-participants: ${e.message}`));
+    }
 });
 
 // ========== SIEMPRE LLAMAR AL RELOAD HANDLER ==========
